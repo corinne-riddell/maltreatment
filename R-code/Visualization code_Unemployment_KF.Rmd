@@ -1,0 +1,274 @@
+---
+title: "Explore google health trends - 'unemployment'"
+output: html_document
+---
+One sentence summary about objective of this doc -- to explore how the google search trend outcome var changes for terms we expect to change dramatically over the course of the pandemic.
+
+Description of the outcome variable that google health trends returns -- C. 'Unemployment'. 
+
+```{r load-libraries, warning=F, message=F, echo=F}
+# install.packages("geofacet") #install once if you don't already have the package
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+```
+
+```{r import-data, echo=F, message=F}
+
+#update to your directory path
+#fixing formatting of "query_time" variable, otherwise get error
+US <-read_csv("/Users/corinneriddell/Box Sync/Google-search-data/unemployment/US/US-unemployment.csv", 
+              col_types = cols(query_time = col_character(), sample = col_double(), 
+                               term = col_character(), timestamp = col_date(format = "%m/%d/%Y"), value = col_double()))
+
+#create DC data frame separately - this was causing an error so had to work around it
+US.DC <- read_csv("/Users/corinneriddell/Box Sync/Google-search-data/unemployment/US-DC/US-DC-unemployment.csv")
+US.DC %<>% mutate(timestamp = as.Date(timestamp))
+
+state_list <- paste0("US-", state.abb)
+
+#create state data frames
+for(i in state_list[1:50]){
+  counter <- 1
+  assign(i, read_csv(paste0("/Users/corinneriddell/Box Sync/Google-search-data/unemployment/",
+                            i, "/", i, "-unemployment.csv")#, 
+                            # col_types = cols(query_time = col_character(), 
+                            #                  sample = col_double(), 
+                            #                  term = col_character(), 
+                            #                  timestamp = col_date(format = ""), 
+                            #                  value = col_double()))
+  )
+)
+}
+
+try <- bind_rows(US %>% select(-query_time), 
+                 US.DC %>% select(-query_time), 
+                 `US-CA` %>% select(-query_time) %>% mutate(timestamp =  as.Date(timestamp))
+)
+
+```
+
+```{r tidy-the-data, echo=F}
+#generalize the code below to run for other states
+#KF: getting Error: cannot arrange column of class 'function' at position 1"
+WY_tidy <- `US-WY` %>% arrange(timestamp) %>% mutate(state = "WY")  %>% select(-query_time)
+
+WV_tidy <- `US-WV` %>% arrange(timestamp) %>% mutate(state = "WV") %>% select(-query_time)
+
+WI_tidy <- `US-WI` %>% arrange(timestamp) %>% mutate(state = "WI") %>% select(-query_time)
+
+WA_tidy <- `US-WA` %>% arrange(timestamp) %>% mutate(state = "WA") %>% select(-query_time)
+
+
+
+VT_tidy <- `US-VT` %>% arrange(timestamp) %>% mutate(state = "VT") %>% select(-query_time)
+
+VA_tidy <- `US-VA` %>% arrange(timestamp) %>% mutate(state = "VA") %>% select(-query_time)
+
+
+
+UT_tidy <- `US-UT` %>% arrange(timestamp) %>% mutate(state = "UT") %>% select(-query_time)
+
+
+
+TX_tidy <- `US-TX` %>% arrange(timestamp) %>% mutate(state = "TX") %>% select(-query_time)
+
+TN_tidy <- `US-TN` %>% arrange(timestamp) %>% mutate(state = "TN") %>% select(-query_time)
+
+
+
+SD_tidy <- `US-SD` %>% arrange(timestamp) %>% mutate(state = "SD") %>% select(-query_time)
+
+SC_tidy <- `US-SC` %>% arrange(timestamp) %>% mutate(state = "SC") %>% select(-query_time)
+
+
+
+RI_tidy <- `US-RI` %>% arrange(timestamp) %>% mutate(state = "RI") %>% select(-query_time)
+
+
+
+PA_tidy <- `US-PA` %>% arrange(timestamp) %>% mutate(state = "PA") %>% select(-query_time)
+
+
+
+OR_tidy <- `US-OR` %>% arrange(timestamp) %>% mutate(state = "OR") %>% select(-query_time)
+
+OK_tidy <- `US-OK` %>% arrange(timestamp) %>% mutate(state = "OK") %>% select(-query_time)
+
+OH_tidy <- `US-OH` %>% arrange(timestamp) %>% mutate(state = "OH") %>% select(-query_time)
+
+
+
+NY_tidy <- `US-NY` %>% arrange(timestamp) %>% mutate(state = "NY") %>% select(-query_time)
+
+NV_tidy <- `US-NV` %>% arrange(timestamp) %>% mutate(state = "NV") %>% select(-query_time)
+
+NM_tidy <- `US-NM` %>% arrange(timestamp) %>% mutate(state = "NM") %>% select(-query_time)
+
+NJ_tidy <- `US-NJ` %>% arrange(timestamp) %>% mutate(state = "NJ") %>% select(-query_time)
+
+NH_tidy <- `US-NH` %>% arrange(timestamp) %>% mutate(state = "NH") %>% select(-query_time)
+
+NE_tidy <- `US-NE` %>% arrange(timestamp) %>% mutate(state = "NE") %>% select(-query_time)
+
+ND_tidy <- `US-ND` %>% arrange(timestamp) %>% mutate(state = "ND") %>% select(-query_time)
+
+NC_tidy <- `US-NC` %>% arrange(timestamp) %>% mutate(state = "NC") %>% select(-query_time)
+
+
+
+MT_tidy <- `US-MT` %>% arrange(timestamp) %>% mutate(state = "MT") %>% select(-query_time)
+
+MS_tidy <- `US-MS` %>% arrange(timestamp) %>% mutate(state = "MS") %>% select(-query_time)
+
+MO_tidy <- `US-MO` %>% arrange(timestamp) %>% mutate(state = "MO") %>% select(-query_time)
+
+MN_tidy <- `US-MN` %>% arrange(timestamp) %>% mutate(state = "MN") %>% select(-query_time)
+
+MI_tidy <- `US-MI` %>% arrange(timestamp) %>% mutate(state = "MI") %>% select(-query_time)
+
+ME_tidy <- `US-ME` %>% arrange(timestamp) %>% mutate(state = "ME") %>% select(-query_time)
+
+MD_tidy <- `US-MD` %>% arrange(timestamp) %>% mutate(state = "MD") %>% select(-query_time)
+
+MA_tidy <- `US-MA` %>% arrange(timestamp) %>% mutate(state = "MA") %>% select(-query_time)
+
+
+
+LA_tidy <- `US-LA` %>% arrange(timestamp) %>% mutate(state = "LA") %>% select(-query_time)
+
+ 
+
+KY_tidy <- `US-KY` %>% arrange(timestamp) %>% mutate(state = "KY") %>% select(-query_time)
+
+KS_tidy <- `US-KS` %>% arrange(timestamp) %>% mutate(state = "KS") %>% select(-query_time)
+
+
+
+IN_tidy <- `US-IN` %>% arrange(timestamp) %>% mutate(state = "IN") %>% select(-query_time)
+
+IL_tidy <- `US-IL` %>% arrange(timestamp) %>% mutate(state = "IL") %>% select(-query_time)
+
+ID_tidy <- `US-ID` %>% arrange(timestamp) %>% mutate(state = "ID") %>% select(-query_time)
+
+IA_tidy <- `US-IA` %>% arrange(timestamp) %>% mutate(state = "IA") %>% select(-query_time)
+
+
+
+HI_tidy <- `US-HI` %>% arrange(timestamp) %>% mutate(state = "HI") %>% select(-query_time)
+
+
+
+GA_tidy <- `US-GA` %>% arrange(timestamp) %>% mutate(state = "GA") %>% select(-query_time)
+
+
+
+FL_tidy <- `US-FL` %>% arrange(timestamp) %>% mutate(state = "FL") %>% select(-query_time)
+
+
+
+DE_tidy <- `US-DE` %>% arrange(timestamp) %>% mutate(state = "DE") %>% select(-query_time)
+
+DC_tidy <- `US.DC` %>% arrange(timestamp) %>% mutate(state = "DC") %>% select(-query_time)
+
+
+
+CT_tidy <- `US-CT` %>% arrange(timestamp) %>% mutate(state = "CT") %>% select(-query_time)
+
+CO_tidy <- `US-CO` %>% arrange(timestamp) %>% mutate(state = "CO") %>% select(-query_time)
+
+CA_tidy <- `US-CA` %>% arrange(timestamp) %>% mutate(state = "CA") %>% select(-query_time)
+
+
+
+AZ_tidy <- `US-AZ` %>% arrange(timestamp) %>% mutate(state = "AZ") %>% select(-query_time)
+
+AR_tidy <- `US-AR` %>% arrange(timestamp) %>% mutate(state = "AR") %>% select(-query_time)
+
+AL_tidy <- `US-AL` %>% arrange(timestamp) %>% mutate(state = "AL") %>% select(-query_time)
+
+AK_tidy <- `US-AK` %>% arrange(timestamp) %>% mutate(state = "AK") %>% select(-query_time)
+
+US_tidy <- US %>% arrange(timestamp) %>% mutate(state = "Total US") %>% select(-query_time)
+
+
+#stack into one data frame - deleted DC_tidy from between CT and DE for now
+all <- bind_rows(US_tidy, AK_tidy, AL_tidy, AR_tidy, AZ_tidy, CA_tidy, CO_tidy, CT_tidy, DC_tidy, DE_tidy,
+                 FL_tidy, GA_tidy, HI_tidy, IA_tidy, ID_tidy, IL_tidy, IN_tidy, KS_tidy, KY_tidy, LA_tidy,
+                 MA_tidy, MD_tidy, ME_tidy, MI_tidy, MN_tidy, MO_tidy, MS_tidy, MT_tidy, NC_tidy, ND_tidy,
+                 NE_tidy, NH_tidy, NJ_tidy, NM_tidy, NV_tidy, NY_tidy, OH_tidy, OK_tidy, OR_tidy, PA_tidy,
+                 RI_tidy, SC_tidy, SD_tidy, TN_tidy, TX_tidy, UT_tidy, VA_tidy, VT_tidy, WA_tidy, WI_tidy,
+                 WV_tidy, WY_tidy)
+
+bystate <- bind_rows(AK_tidy, AL_tidy, AR_tidy, AZ_tidy, CA_tidy, CO_tidy, CT_tidy, DC_tidy, DE_tidy,
+                 FL_tidy, GA_tidy, HI_tidy, IA_tidy, ID_tidy, IL_tidy, IN_tidy, KS_tidy, KY_tidy, LA_tidy,
+                 MA_tidy, MD_tidy, ME_tidy, MI_tidy, MN_tidy, MO_tidy, MS_tidy, MT_tidy, NC_tidy, ND_tidy,
+                 NE_tidy, NH_tidy, NJ_tidy, NM_tidy, NV_tidy, NY_tidy, OH_tidy, OK_tidy, OR_tidy, PA_tidy,
+                 RI_tidy, SC_tidy, SD_tidy, TN_tidy, TX_tidy, UT_tidy, VA_tidy, VT_tidy, WA_tidy, WI_tidy,
+                 WV_tidy, WY_tidy)
+
+#by US region to better see varition in trends by state
+# northeast: Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island, Vermont, New Jersey, New York, Pennsylvania
+northeast <- bind_rows(CT_tidy, ME_tidy, MA_tidy, NH_tidy, RI_tidy, VT_tidy, NJ_tidy, NY_tidy, PA_tidy)
+
+# midwest: Illinois, Indiana, Michigan, Ohio, Wisconsin, Iowa, Kansas, Minnesota, Missouri, Nebraska, North Dekota, South Dekota
+mdwest <- bind_rows(IL_tidy, IN_tidy, MI_tidy, OH_tidy, WI_tidy, IA_tidy, KS_tidy, MN_tidy, MO_tidy, NE_tidy, ND_tidy, SD_tidy)
+
+# south: Delaware, Florida, Georgia, Maryland, North Carolina, South Carolina, Virginia, DC, West Virginia, Alabama, Kentucky, Mississippi, Tennessee, Arkansas, Louisiana, Oklahoma, Texas
+south <- bind_rows(DE_tidy, FL_tidy, GA_tidy, MD_tidy, NC_tidy, SC_tidy, VA_tidy, DC_tidy, WV_tidy, AL_tidy, KY_tidy, MS_tidy, TN_tidy, AR_tidy, LA_tidy, OK_tidy, TX_tidy)
+
+# west: Arizona, Colorado, Idaho, Montana, Nevada, New Mexico, Utah, Wyoming, Alaska, California, Hawaii, Oregon, Washington
+west <- bind_rows(AZ_tidy, CO_tidy, ID_tidy, MT_tidy, NV_tidy, NM_tidy, UT_tidy, WY_tidy, AK_tidy, CA_tidy, HI_tidy, OR_tidy, WA_tidy)
+
+```
+
+```{r make-plots, echo = F, fig.height = 8, fig.width = 12}
+
+#plot of all states and geofacet
+ggplot(bystate, aes(x = timestamp, y = value)) + geom_line(aes(col = state)) +
+  labs(x = "Date", y = "Search outcome - 'unemployment'") + 
+  ggtitle("All States, with total US (black dashed line)") + 
+  geom_line(data = all %>% filter(state == "Total US"), linetype = "longdash")
+
+ggplot(bystate, aes(x = timestamp, y = value)) + 
+  geom_line(aes(col = state)) +
+  labs(x = "Date", y = "Search outcome - 'unemployment'") + 
+  ggtitle("\n\n\nBy State, with total US (black dashed line)") +
+  facet_geo(~ state) + 
+  geom_line(data = all %>% filter(state == "Total US"), linetype = "dashed")
+
+#plots by region
+p1 <- ggplot(northeast, aes(x = timestamp, y = value)) + geom_line(aes(col = state)) + 
+  #ylim(0,250000) +
+  labs(x = "Date", y = "Search outcome - 'unemployment'") + 
+  ggtitle("\n\n\nNortheastern States, with total US (black dashed line)") +
+  geom_line(data = all %>% filter(state == "Total US"), linetype = "longdash")
+
+p2 <- ggplot(mdwest, aes(x = timestamp, y = value)) + geom_line(aes(col = state)) +
+  #ylim(0,250000) +
+  labs(x = "Date", y = "Search outcome - 'unemployment'") + 
+  ggtitle("\n\n\nMidwestern States, with total US (black dashed line)") +
+  geom_line(data = all %>% filter(state == "Total US"), linetype = "longdash")
+
+p3 <- ggplot(south, aes(x = timestamp, y = value)) + geom_line(aes(col = state)) + 
+  #ylim(0,250000) +
+  labs(x = "Date", y = "Search outcome - 'unemployment'") + 
+  ggtitle("\n\nSouthern States, with total US (black dashed line)") +
+  geom_line(data = all %>% filter(state == "Total US"), linetype = "longdash")
+
+p4 <- ggplot(west, aes(x = timestamp, y = value)) + geom_line(aes(col = state)) + 
+  #ylim(0,250000) +
+  labs(x = "Date", y = "Search outcome - 'unemployment'") + 
+  ggtitle("\n\nWestern States, with total US (black dashed line)") + 
+  geom_line(data = all %>% filter(state == "Total US"), linetype = "longdash")
+
+grid.arrange(p1, p2, p3, p4, nrow = 2)
+```
+
+
+What next test should we run? What questions do we have for the group or Krista?
+
+Questions:
+
+KF: I'm probably not understanding what "value" is actually being captured by Google Health Trends, but I'm confused about why the trend for Total US isn't higher than for individual states.

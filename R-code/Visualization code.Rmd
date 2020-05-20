@@ -1,0 +1,49 @@
+---
+title: "Explore google health trends"
+output: html_document
+---
+
+Add one sentence summary about objective of this doc -- to explore how the google search trend outcome var changes for terms we expect to change dramatically over the course of the pandemic.
+
+Also add description of the outcome variable that google health trends returns. 
+
+```{r load-libraries, warning=F, message=F, echo=F}
+library(tidyverse)
+library(magrittr)
+```
+
+```{r import-data, echo=F, message=F}
+#update to your directory path
+US <-read_csv("/Users/corinneriddell/Box Sync/Google-search-data/corona/US/US-corona.csv")
+
+state_list <- paste0("US-", state.abb)
+
+#create state data frames
+for(i in state_list[1:50]){
+  counter <- 1
+  assign(i, read_csv(paste0("/Users/corinneriddell/Box Sync/Google-search-data/corona/",
+                            i, "/", i, "-corona.csv")
+  )
+)
+}
+```
+
+```{r tidy-the-data, echo=F}
+#generalize the code below to run for other states
+AK_tidy <- `US-AK` %>% arrange(timestamp) %>% mutate(state = "AK")
+US_tidy <- US %>% arrange(timestamp) %>% mutate(state = "ALL")
+
+#stack into one data frame
+all <- bind_rows(US_tidy, AK_tidy)
+```
+
+```{r make-plots, echo = F}
+#plot
+ggplot(all, aes(x = timestamp, y = value)) + geom_line(aes(col = state)) +
+  labs(x = "Date", y = "Search outcome") 
+```
+
+Add sections for the other terms: unemployment, "Covid or Coronavirus"
+
+What next test should we run? What qus do we have for the group or krista?
+
