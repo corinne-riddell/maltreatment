@@ -7,7 +7,7 @@ from search_sampler import SearchSampler
 apikey = 'AIzaSyBa1PTogBywoug3ALLlHT2DWaffrpip39k'
 
 # define where to save output samples
-output_path = 'C:\\Users\\Krist\\Box Sync\\Google-search-data\\NewSearches\\Test'
+output_path = 'C:\\Users\\Krist\\Box Sync\\Google-search-data\\NewSearches\\Weather'
 
 # tell the rolling window how many samples to pull.
 # if doing single sample pull, this number doesn't seem to do anything
@@ -30,16 +30,16 @@ num_samples = 1
     # states = ['US-UT', 'US-VA', 'US-VT', 'US-WA']
     # states = ['US-WI', 'US-WV', 'US-WY']
 
-'''states = ['US-AL', 'US-AK', 'US-AZ', 'US-AR', 'US-CA', 'US-CO', 'US-CT', 'US-DC','US-DE', 'US-FL', 'US-GA', 'US-HI',
+states = ['US-AL', 'US-AK', 'US-AZ', 'US-AR', 'US-CA', 'US-CO', 'US-CT', 'US-DC','US-DE', 'US-FL', 'US-GA', 'US-HI',
 'US-ID', 'US-IL', 'US-IN', 'US-IA','US-KS', 'US-KY', 'US-LA', 'US-ME','US-MD', 'US-MA', 'US-MI','US-MN', 'US-MS', 'US-MO', 
 'US-MT', 'US-NE', 'US-NV', 'US-NH', 'US-NJ','US-NM', 'US-NY', 'US-NC', 'US-ND','US-OH', 'US-OK', 'US-OR', 'US-PA','US-RI', 
-'US-SC', 'US-SD', 'US-TN', 'US-TX', 'US-UT', 'US-VT', 'US-VA', 'US-WA', 'US-WV', 'US-WI', 'US-WY']'''
+'US-SC', 'US-SD', 'US-TN', 'US-TX', 'US-UT', 'US-VT', 'US-VA', 'US-WA', 'US-WV', 'US-WI', 'US-WY']
 
     # Can pull entire US at once with :  states = ['US']'''
 
 
 # ENTER SEARCH REGION HERE
-states = ['US']
+#states = ['US']
 
 # list of all DMA codes
 '''dmas = []'''
@@ -101,6 +101,9 @@ def query(regionCodes, filePath):
                 # ['How to leave abusive marriage + how to get out of bad relationship + how to get out of abusive relationship + how to leave abusive relationship + how to get out of dangerous relationship + how to leave dangerous relationship']
                 # ['husband hit me + husband beat me + husband slapped me + husband kicked me + husband punched me + husband choked me + husband strangled me + boyfriend hit me + boyfriend beat me + boyfriend slapped me + boyfriend kicked me + boyfriend punched me + boyfriend choked me + boyfriend strangled me]
                 # ['Find women's shelter + find domestic violence shelter + women shelter near me + women's shelter near me + help for abused women + emergency number for domestic violence + domestic violence emergency help' ]
+
+            #Baseline Searches
+                #Weekly Weather Queries, ran on 5/25: ['weather']
 
             # CURRENT SEARCH
             'search_term': ['weather'],
