@@ -116,7 +116,7 @@ def query(regionCodes, filePath):
             'period_end': '2019-12-31',
 
             # Options are day, week, month. WARNING: This has been extensively tested with week only.
-            'period_length': 'week'
+            'period_length': 'daily'
         }
 
         sample = SearchSampler(apikey, "weather", params, output_path=filePath)
