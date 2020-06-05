@@ -1,0 +1,151 @@
+---
+title: "Explore Google Health Trends intimate partner violence-related search term test runs"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+One sentence summary about objective of this doc -- to explore google health trends for intimate partner violence-related search terms by examining data for 2019 (prior to study period).
+
+Weekly searches at the national level for 2019:
+
+Terms include variations of: "how to text/what is/find abuse hotline number", "[perpetrator] abuses me", "how to develop code words to tell children to call 911", "I feel unsafe/husband/boyfriend/partner makes me feel unsafe", "abuse/domestic violence hotline/help/emergency line/helpline/support line", "women's/domestic violence shelter/ help for abused women", "how to keep partner/boyfriend/husband calm", "how to secretly save money", "how to leave abusive/dangerous relationship/marriage", "how to protect kinds from domestic violence"
+
+Perpetrators included: husband, boyfriend, ex-boyfriend, ex-husband, ex boyfriend, ex husband, exboyfriend, exhusband, wife, girlfriend, ex-wife, ex-girlfriend, ex wife, ex girlfriend, exwife, exgirlfriend, partner, ex-partner, expartner, ex partner, spouse, ex-spouse, exspouse, ex spouse, ex, significant other
+
+
+** Note the different y-axis scale for 'abuse/domestic violence hotline' searches in first set of plots.
+
+```{r load-libraries, warning=F, message=F, echo=F}
+# install.packages("geofacet") #install once if you don't already have the package
+library(directlabels)
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+```
+
+```{r import-data, echo=F, message=F}
+
+#read in data
+#create term-specific dataframes
+find.abuse.hotline <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-abuse-hotline.csv")
+
+abuses.me <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-abuses-me.csv")
+
+codeword <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-codewords.csv")
+
+unsafe <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-feel-unsafe.csv")
+
+hotline <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-find-hotline.csv")
+
+shelter <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-find-shelter.csv")
+
+partner.calm <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-how-to-calm.csv")
+
+save.money <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-how-to-secretly-save.csv")
+
+leave <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-leave-relationship.csv")
+
+protect.kids <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-protect-kids.csv")
+
+```
+
+```{r tidy-the-data, echo=F}
+find_hotline_tidy <- `find.abuse.hotline` %>% arrange(timestamp) %>% mutate(term2 = "how to find/text/what is hotline") %>% mutate(term3 = "how to - hotline")
+abuseme_tidy <- `abuses.me` %>% arrange(timestamp) %>% mutate(term2 = "[perpetrator] abuses me") %>% mutate(term3 = "abuse me")
+codeword_tidy <- `codeword` %>% arrange(timestamp) %>% mutate(term2 = "how to develop code word") %>% mutate(term3 = "codeword")
+unsafe_tidy <- `unsafe` %>% arrange(timestamp) %>% mutate(term2 = "makes me feel unsafe") %>% mutate(term3 = "unsafe")
+hotline_tidy <- `hotline` %>% arrange(timestamp) %>% mutate(term2 = "abuse/domestic violence hotline") %>% mutate(term3 = "hotline")
+shelter_tidy <- `shelter` %>% arrange(timestamp) %>% mutate(term2 = "women's/domestic violence shelter") %>% mutate(term3 = "shelter")
+calm_tidy <- `partner.calm` %>% arrange(timestamp) %>% mutate(term2 = "how to keep partner calm") %>% mutate(term3 = "calm")
+money_tidy <- `save.money` %>% arrange(timestamp) %>% mutate(term2 = "how to secretly save money") %>% mutate(term3 = "money")
+leave_tidy <- `leave` %>% arrange(timestamp) %>% mutate(term2 = "how to leave abusive/dangerous relationship") %>% mutate(term3 = "relationship")
+protect_kids_tidy <- `protect.kids` %>% arrange(timestamp) %>% mutate(term2 = "protect kids from domestic violence") %>% mutate(term3 = "protect")
+
+
+# stack into one dataframe
+all <- bind_rows(find_hotline_tidy, abuseme_tidy, codeword_tidy, unsafe_tidy, hotline_tidy, shelter_tidy, calm_tidy, money_tidy, leave_tidy, protect_kids_tidy)
+
+all.2 <- bind_rows(find_hotline_tidy, abuseme_tidy, codeword_tidy, unsafe_tidy, shelter_tidy, calm_tidy, money_tidy, leave_tidy, protect_kids_tidy)
+
+```
+
+```{r make-plots, echo = F, fig.height = 10, fig.width = 14}
+
+#plot google health trends data individually for each term(s)
+p1 <- ggplot(find_hotline_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,14) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'how to find/text/what is hotline' searches") 
+
+p2 <- ggplot(abuseme_tidy, aes(x = timestamp, y = value)) +
+  geom_line() +  ylim(0,14) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'[perpetrator] abuses me' searches")
+
+p3 <- ggplot(codeword_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,14) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'how to develop code word' searches")
+
+p4 <- ggplot(unsafe_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,14) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'makes me feel unsafe' searches")
+
+p5 <- ggplot(hotline_tidy, aes(x = timestamp, y = value)) +
+  geom_line() +  #ylim(0,3) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'abuse/domestic violence hotline' searches")
+
+p6 <- ggplot(shelter_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,14) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'women's/domestic violence shelter' searches")
+
+p7 <- ggplot(calm_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,14) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'how to keep partner calm' searches")
+
+p8 <- ggplot(money_tidy, aes(x = timestamp, y = value)) +
+  geom_line() +  ylim(0,14) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'how to secretly save money' searches")
+
+p9 <- ggplot(leave_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,14) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'how to leave abusive/dangerous relationship' searches")
+
+p10 <- ggplot(protect_kids_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,14) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'how to protect kids from domestic violence' searches")
+
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, nrow = 4)
+
+#plot by search term(s)
+ggplot(all, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = term2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("\n\n\nNational weekly data for 2019, by IPV asking for help search term") +
+  labs(col="Search term") +
+  geom_dl(aes(label = term3), method = list(dl.combine("first.points"), cex = 0.8)) +
+  coord_cartesian(clip = 'off')
+
+
+ggplot(all.2, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = term2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("\n\nNational weekly data for 2019, by IPV asking for help search term (excluding 'abuse/domestic violence hotline' searches)") +
+  labs(col="Search term") +
+  geom_dl(aes(label = term3), method = list(dl.combine("first.points"), cex = 0.8)) + 
+  coord_cartesian(clip = 'off')
+
+
+
+```
+
+

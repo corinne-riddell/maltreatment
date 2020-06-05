@@ -1,0 +1,195 @@
+---
+title: "Explore Google Health Trends child abuse-related search term test runs"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+One sentence summary about objective of this doc -- to explore google health trends for child abuse-related search terms by examining data for 2019 (prior to study period).
+
+Weekly searches in 2019 at the national and state levels for "hurt":
+
+Terms included: hurt
+
+Perpetrators included: mom, mother, stepmom, stepmother, mom's boyfriend, mom boyfriend, mom's girlfriend, mom girlfriend, mom's friend, mom friend, dad, father, stepdad, stepfather, dad's girlfriend, dad girlfriend, dad's friend, dad friend, dad's boyfriend, dad boyfriend, grandma, grandpa, brother, sister, uncle, aunt 
+
+
+```{r load-libraries, warning=F, message=F, echo=F}
+# install.packages("geofacet") #install once if you don't already have the package
+library(directlabels)
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+```
+
+```{r import-data, echo=F, message=F}
+
+## read in data
+state_list <- c(paste0("US-", state.abb), "US-DC")
+
+# "hit"
+# read in US separately
+US <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/Child Abuse/Child-hurt-1/states/US/US-child-hurt-1.csv")
+
+for(i in state_list[1:51]){
+  counter <- 1
+  assign(i, read_csv(paste0("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/Child Abuse/Child-hurt-1/states/", i, "/", i, "-hurt-1.csv")
+  )
+)
+}
+
+```
+
+```{r tidy-the-data, echo=F}
+## clean/prep the data for plotting
+## sort by date/time and add on additional variables as needed
+WY_tidy <- `US-WY` %>% arrange(timestamp) %>% mutate(state = "WY")
+WV_tidy <- `US-WV` %>% arrange(timestamp) %>% mutate(state = "WV")
+WI_tidy <- `US-WI` %>% arrange(timestamp) %>% mutate(state = "WI")
+WA_tidy <- `US-WA` %>% arrange(timestamp) %>% mutate(state = "WA")
+
+VT_tidy <- `US-VT` %>% arrange(timestamp) %>% mutate(state = "VT")
+VA_tidy <- `US-VA` %>% arrange(timestamp) %>% mutate(state = "VA")
+
+UT_tidy <- `US-UT` %>% arrange(timestamp) %>% mutate(state = "UT")
+
+TX_tidy <- `US-TX` %>% arrange(timestamp) %>% mutate(state = "TX")
+TN_tidy <- `US-TN` %>% arrange(timestamp) %>% mutate(state = "TN")
+
+SD_tidy <- `US-SD` %>% arrange(timestamp) %>% mutate(state = "SD")
+SC_tidy <- `US-SC` %>% arrange(timestamp) %>% mutate(state = "SC")
+
+RI_tidy <- `US-RI` %>% arrange(timestamp) %>% mutate(state = "RI")
+
+PA_tidy <- `US-PA` %>% arrange(timestamp) %>% mutate(state = "PA")
+
+OR_tidy <- `US-OR` %>% arrange(timestamp) %>% mutate(state = "OR")
+OK_tidy <- `US-OK` %>% arrange(timestamp) %>% mutate(state = "OK")
+OH_tidy <- `US-OH` %>% arrange(timestamp) %>% mutate(state = "OH")
+
+NY_tidy <- `US-NY` %>% arrange(timestamp) %>% mutate(state = "NY")
+NV_tidy <- `US-NV` %>% arrange(timestamp) %>% mutate(state = "NV")
+NM_tidy <- `US-NM` %>% arrange(timestamp) %>% mutate(state = "NM")
+NJ_tidy <- `US-NJ` %>% arrange(timestamp) %>% mutate(state = "NJ")
+NH_tidy <- `US-NH` %>% arrange(timestamp) %>% mutate(state = "NH")
+NE_tidy <- `US-NE` %>% arrange(timestamp) %>% mutate(state = "NE")
+ND_tidy <- `US-ND` %>% arrange(timestamp) %>% mutate(state = "ND")
+NC_tidy <- `US-NC` %>% arrange(timestamp) %>% mutate(state = "NC")
+
+MT_tidy <- `US-MT` %>% arrange(timestamp) %>% mutate(state = "MT")
+MS_tidy <- `US-MS` %>% arrange(timestamp) %>% mutate(state = "MS")
+MO_tidy <- `US-MO` %>% arrange(timestamp) %>% mutate(state = "MO")
+MN_tidy <- `US-MN` %>% arrange(timestamp) %>% mutate(state = "MN")
+MI_tidy <- `US-MI` %>% arrange(timestamp) %>% mutate(state = "MI")
+ME_tidy <- `US-ME` %>% arrange(timestamp) %>% mutate(state = "ME")
+MD_tidy <- `US-MD` %>% arrange(timestamp) %>% mutate(state = "MD")
+MA_tidy <- `US-MA` %>% arrange(timestamp) %>% mutate(state = "MA")
+
+LA_tidy <- `US-LA` %>% arrange(timestamp) %>% mutate(state = "LA")
+
+KY_tidy <- `US-KY` %>% arrange(timestamp) %>% mutate(state = "KY")
+KS_tidy <- `US-KS` %>% arrange(timestamp) %>% mutate(state = "KS")
+
+IN_tidy <- `US-IN` %>% arrange(timestamp) %>% mutate(state = "IN")
+IL_tidy <- `US-IL` %>% arrange(timestamp) %>% mutate(state = "IL")
+ID_tidy <- `US-ID` %>% arrange(timestamp) %>% mutate(state = "ID")
+IA_tidy <- `US-IA` %>% arrange(timestamp) %>% mutate(state = "IA")
+
+HI_tidy <- `US-HI` %>% arrange(timestamp) %>% mutate(state = "HI")
+
+GA_tidy <- `US-GA` %>% arrange(timestamp) %>% mutate(state = "GA")
+
+FL_tidy <- `US-FL` %>% arrange(timestamp) %>% mutate(state = "FL")
+
+DE_tidy <- `US-DE` %>% arrange(timestamp) %>% mutate(state = "DE")
+DC_tidy <- `US-DC` %>% arrange(timestamp) %>% mutate(state = "DC")
+
+CT_tidy <- `US-CT` %>% arrange(timestamp) %>% mutate(state = "CT")
+CO_tidy <- `US-CO` %>% arrange(timestamp) %>% mutate(state = "CO")
+CA_tidy <- `US-CA` %>% arrange(timestamp) %>% mutate(state = "CA")
+
+AZ_tidy <- `US-AZ` %>% arrange(timestamp) %>% mutate(state = "AZ")
+AR_tidy <- `US-AR` %>% arrange(timestamp) %>% mutate(state = "AR")
+AL_tidy <- `US-AL` %>% arrange(timestamp) %>% mutate(state = "AL")
+AK_tidy <- `US-AK` %>% arrange(timestamp) %>% mutate(state = "AK")
+US_tidy <- US %>% arrange(timestamp) %>% mutate(state = "Total US")
+
+#stack into one data frame 
+all <- bind_rows(US_tidy, AK_tidy, AL_tidy, AR_tidy, AZ_tidy, CA_tidy, CO_tidy, CT_tidy, DC_tidy, DE_tidy,
+                 FL_tidy, GA_tidy, HI_tidy, IA_tidy, ID_tidy, IL_tidy, IN_tidy, KS_tidy, KY_tidy, LA_tidy,
+                 MA_tidy, MD_tidy, ME_tidy, MI_tidy, MN_tidy, MO_tidy, MS_tidy, MT_tidy, NC_tidy, ND_tidy,
+                 NE_tidy, NH_tidy, NJ_tidy, NM_tidy, NV_tidy, NY_tidy, OH_tidy, OK_tidy, OR_tidy, PA_tidy,
+                 RI_tidy, SC_tidy, SD_tidy, TN_tidy, TX_tidy, UT_tidy, VA_tidy, VT_tidy, WA_tidy, WI_tidy,
+                 WV_tidy, WY_tidy)
+
+bystate <- bind_rows(AK_tidy, AL_tidy, AR_tidy, AZ_tidy, CA_tidy, CO_tidy, CT_tidy, DC_tidy, DE_tidy,
+                 FL_tidy, GA_tidy, HI_tidy, IA_tidy, ID_tidy, IL_tidy, IN_tidy, KS_tidy, KY_tidy, LA_tidy,
+                 MA_tidy, MD_tidy, ME_tidy, MI_tidy, MN_tidy, MO_tidy, MS_tidy, MT_tidy, NC_tidy, ND_tidy,
+                 NE_tidy, NH_tidy, NJ_tidy, NM_tidy, NV_tidy, NY_tidy, OH_tidy, OK_tidy, OR_tidy, PA_tidy,
+                 RI_tidy, SC_tidy, SD_tidy, TN_tidy, TX_tidy, UT_tidy, VA_tidy, VT_tidy, WA_tidy, WI_tidy,
+                 WV_tidy, WY_tidy)
+
+#by US region to better see varition in trends by state
+# northeast: Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island, Vermont, New Jersey, New York, Pennsylvania
+northeast <- bind_rows(CT_tidy, ME_tidy, MA_tidy, NH_tidy, RI_tidy, VT_tidy, NJ_tidy, NY_tidy, PA_tidy)
+
+# midwest: Illinois, Indiana, Michigan, Ohio, Wisconsin, Iowa, Kansas, Minnesota, Missouri, Nebraska, North Dekota, South Dekota
+mdwest <- bind_rows(IL_tidy, IN_tidy, MI_tidy, OH_tidy, WI_tidy, IA_tidy, KS_tidy, MN_tidy, MO_tidy, NE_tidy, ND_tidy, SD_tidy)
+
+# south: Delaware, Florida, Georgia, Maryland, North Carolina, South Carolina, Virginia, DC, West Virginia, Alabama, Kentucky, Mississippi, Tennessee, Arkansas, Louisiana, Oklahoma, Texas
+south <- bind_rows(DE_tidy, FL_tidy, GA_tidy, MD_tidy, NC_tidy, SC_tidy, VA_tidy, DC_tidy, WV_tidy, AL_tidy, KY_tidy, MS_tidy, TN_tidy, AR_tidy, LA_tidy, OK_tidy, TX_tidy)
+
+# west: Arizona, Colorado, Idaho, Montana, Nevada, New Mexico, Utah, Wyoming, Alaska, California, Hawaii, Oregon, Washington
+west <- bind_rows(AZ_tidy, CO_tidy, ID_tidy, MT_tidy, NV_tidy, NM_tidy, UT_tidy, WY_tidy, AK_tidy, CA_tidy, HI_tidy, OR_tidy, WA_tidy)
+```
+
+```{r make-plots, echo = F, fig.height = 8, fig.width = 12}
+## Create plots
+## plot of all states and geofacet
+ggplot(bystate, aes(x = timestamp, y = value)) + geom_line(aes(col = state)) +
+  labs(x = "Date", y = "Search outcome - 'hurt'") + 
+  ggtitle("\n\n\nSearch Term 'Hurt' - All States, with total US (black line)") + 
+  geom_line(data = all %>% filter(state == "Total US"), linetype = "solid")
+
+ggplot(bystate, aes(x = timestamp, y = value)) + 
+  geom_line(aes(col = state)) +
+  labs(x = "Date", y = "Search outcome - 'hurt'") + 
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) +
+  ggtitle("\n\n\nSearch Term 'Hurt' - By State, with total US (black line)") +
+  facet_geo(~ state) + 
+  geom_line(data = all %>% filter(state == "Total US"), linetype = "solid")
+
+#plots by region
+p1a <- ggplot(northeast, aes(x = timestamp, y = value)) + geom_line(aes(col = state)) + 
+  ylim(0,80) +
+  labs(x = "Date", y = "Search outcome - 'hurt'") + 
+  ggtitle("\n\n\n\'Hurt' - Northeastern States, with total US (black line)") +
+  geom_line(data = all %>% filter(state == "Total US"), linetype = "longdash") +
+  geom_dl(aes(label = state), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+p2a <- ggplot(mdwest, aes(x = timestamp, y = value)) + geom_line(aes(col = state)) +
+  ylim(0,80) +
+  labs(x = "Date", y = "Search outcome - 'hurt'") + 
+  ggtitle("\n\n\n'Hurt' - Midwestern States, with total US (black line)") +
+  geom_line(data = all %>% filter(state == "Total US"), linetype = "longdash") +
+  geom_dl(aes(label = state), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+p3a <- ggplot(south, aes(x = timestamp, y = value)) + geom_line(aes(col = state)) + 
+  ylim(0,80) +
+  labs(x = "Date", y = "Search outcome - 'hurt'") + 
+  ggtitle("\n\n'Hurt' - Southern States, with total US (black line)") +
+  geom_line(data = all %>% filter(state == "Total US"), linetype = "longdash") +
+  geom_dl(aes(label = state), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+p4a <- ggplot(west, aes(x = timestamp, y = value)) + geom_line(aes(col = state)) + 
+  ylim(0,80) +
+  labs(x = "Date", y = "Search outcome - 'hurt'") + 
+  ggtitle("\n\n'Hurt' - Western States, with total US (black line)") + 
+  geom_line(data = all %>% filter(state == "Total US"), linetype = "longdash") +
+  geom_dl(aes(label = state), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+grid.arrange(p1a, p2a, p3a, p4a, nrow = 2)
+
+```
+

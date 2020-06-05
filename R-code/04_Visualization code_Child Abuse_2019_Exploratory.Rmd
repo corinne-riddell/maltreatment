@@ -1,0 +1,206 @@
+---
+title: "Explore Google Health Trends child abuse-related search term test runs"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+One sentence summary about objective of this doc -- to explore google health trends for child abuse-related search terms by examining data for 2019 (prior to study period).
+
+Weekly searches at the national and state levels (subset of terms) for 2019:
+
+Terms included: hit, hits, beat, beats, grab, grabbed, grabs, harm, harmed, harms, hurt, hurts, kick, kicked, kicks, punch, punched, punches, push, pushed, pushes, slap, slapped, slaps
+
+Perpetrators included: mom, mother, stepmom, stepmother, mom's boyfriend, mom boyfriend, mom's girlfriend, mom girlfriend, mom's friend, mom friend, dad, father, stepdad, stepfather, dad's girlfriend, dad girlfriend, dad's friend, dad friend, dad's boyfriend, dad boyfriend, grandma, grandpa, brother, sister, uncle, aunt 
+
+
+```{r load-libraries, warning=F, message=F, echo=F}
+# install.packages("geofacet") #install once if you don't already have the package
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+```
+
+```{r import-data, echo=F, message=F}
+
+#read in data
+term_list <- cbind('hit', 'hits', 'beat', 'beats', 'grab', 'grabbed', 'grabs', 'harm', 'harmed', 'harms', 'hurt', 'hurts', 'kick', 'kicked', 'kicks', 'punch', 'punched', 'punches', 'push', 'pushed', 'pushes', 'slap', 'slapped', 'slaps')
+
+#create term-specific dataframes
+for(i in term_list[1:24]){
+  counter <- 1
+  assign(i, read.csv(paste0("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/Child Abuse/Child-",
+                          i, "-1/states/US/US-child-", i, "-1.csv")
+  )
+)
+}
+```
+
+```{r tidy-the-data, echo=F}
+hit_tidy     <- `hit` %>% arrange(timestamp) %>% mutate(term2 = "hit")
+hits_tidy    <- `hits` %>% arrange(timestamp) %>% mutate(term2 = "hits")
+beat_tidy    <- `beat` %>% arrange(timestamp) %>% mutate(term2 = "beat")
+beats_tidy   <- `beats` %>% arrange(timestamp) %>% mutate(term2 = "beats")
+grab_tidy    <- `grab` %>% arrange(timestamp) %>% mutate(term2 = "grab")
+grabbed_tidy <- `grabbed` %>% arrange(timestamp) %>% mutate(term2 = "grabbed")
+grabs_tidy   <- `grabs` %>% arrange(timestamp) %>% mutate(term2 = "grabs")
+harm_tidy    <- `harm` %>% arrange(timestamp) %>% mutate(term2 = "harm")
+harmed_tidy  <- `harmed` %>% arrange(timestamp) %>% mutate(term2 = "harmed")
+harms_tidy   <- `harms` %>% arrange(timestamp) %>% mutate(term2 = "harms")
+hurt_tidy    <- `hurt` %>% arrange(timestamp) %>% mutate(term2 = "hurt")
+hurts_tidy   <- `hurts` %>% arrange(timestamp) %>% mutate(term2 = "hurts")
+kick_tidy    <- `kick` %>% arrange(timestamp) %>% mutate(term2 = "kick")
+kicked_tidy  <- `kicked` %>% arrange(timestamp) %>% mutate(term2 = "kicked")
+kicks_tidy   <- `kicks` %>% arrange(timestamp) %>% mutate(term2 = "kicks")
+punch_tidy   <- `punch` %>% arrange(timestamp) %>% mutate(term2 = "punch")
+punched_tidy <- `punched` %>% arrange(timestamp) %>% mutate(term2 = "punched")
+punches_tidy <- `punches` %>% arrange(timestamp) %>% mutate(term2 = "punches")
+push_tidy    <- `push` %>% arrange(timestamp) %>% mutate(term2 = "push")
+pushed_tidy  <- `pushed` %>% arrange(timestamp) %>% mutate(term2 = "pushed")
+pushes_tidy  <- `pushes` %>% arrange(timestamp) %>% mutate(term2 = "pushes")
+slap_tidy    <- `slap` %>% arrange(timestamp) %>% mutate(term2 = "slap")
+slapped_tidy <- `slapped` %>% arrange(timestamp) %>% mutate(term2 = "slapped")
+slaps_tidy   <- `slaps` %>% arrange(timestamp) %>% mutate(term2 = "slaps")
+
+# stack into one dataframe
+all <- bind_rows(hit_tidy, hits_tidy, beat_tidy, beats_tidy, grab_tidy, grabbed_tidy, grabs_tidy, harm_tidy, harmed_tidy, harms_tidy, hurt_tidy, hurts_tidy, kick_tidy, kicked_tidy, kicks_tidy, punch_tidy, punched_tidy, punches_tidy, push_tidy, pushed_tidy, pushes_tidy, slap_tidy, slapped_tidy, slaps_tidy)
+
+```
+
+```{r make-plots, echo = F, fig.height = 8, fig.width = 12}
+
+#plot google health trends data individually for each term(s)
+p1 <- ggplot(hit_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Hit")
+
+p2 <- ggplot(hits_tidy, aes(x = timestamp, y = value)) +
+  geom_line() +  ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Hits")
+
+p3 <- ggplot(beat_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Beat")
+
+p4 <- ggplot(beats_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Beats")
+
+p5 <- ggplot(grab_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Grab")
+
+p6 <- ggplot(grabbed_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Grabbed")
+
+p7 <- ggplot(grabs_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Grabs")
+
+p8 <- ggplot(harm_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Harm")
+
+p9 <- ggplot(harmed_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Harmed")
+
+p10 <- ggplot(harms_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Harms")
+
+p11 <- ggplot(hurt_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Hurt")
+
+p12 <- ggplot(hurts_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Hurts")
+
+p13 <- ggplot(kick_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Kick")
+
+p14 <- ggplot(kicked_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Kicked")
+
+p15 <- ggplot(kicks_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Kicks")
+
+p16 <- ggplot(punch_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Punch")
+
+p17 <- ggplot(punched_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Punched")
+
+p18 <- ggplot(punches_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Punches")
+
+p19 <- ggplot(push_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Push")
+
+p20 <- ggplot(pushed_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Pushed")
+
+p21 <- ggplot(pushes_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Pushes")
+
+p22 <- ggplot(slap_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Slap")
+
+p23 <- ggplot(slapped_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Slapped")
+
+p24 <- ggplot(slaps_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,8) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("Slaps")
+
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, nrow = 6)
+
+#plot by search term(s)
+ggplot(all, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = term2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("National weekly data for 2019, by child abuse search term") +
+  labs(col="Search term") 
+
+
+```
+
+
