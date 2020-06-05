@@ -1,0 +1,78 @@
+---
+title: "Explore Google Health Trends child abuse-related search term test runs"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+One sentence summary about objective of this doc -- to explore google health trends for child abuse-related search terms by examining data for 2019 (prior to study period).
+
+Weekly searches at the national level for 2019:
+
+Terms include variations of: "what are signs of child abuse", "[perpetrator] abuses me", "how to tell if [male partner] is abusing child"
+
+Perpetrators included: mom, mother, stepmom, stepmother, mom's boyfriend, mom boyfriend, mom's girlfriend, mom girlfriend, mom's friend, mom friend, dad, father, stepdad, stepfather, dad's girlfriend, dad girlfriend, dad's friend, dad friend, dad's boyfriend, dad boyfriend, grandma, grandpa, brother, sister, uncle, aunt 
+
+
+```{r load-libraries, warning=F, message=F, echo=F}
+# install.packages("geofacet") #install once if you don't already have the package
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+```
+
+```{r import-data, echo=F, message=F}
+
+#read in data
+#create term-specific dataframes
+abuse.signs <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/Child Abuse/AdultQueries/US-Child-abuse-signs.csv")
+
+abuses.me <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/Child Abuse/AdultQueries/US-Child-abuses.csv")
+
+abuse.partner <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/Child Abuse/AdultQueries/US-Child-partner-abuse.csv")
+
+```
+
+```{r tidy-the-data, echo=F}
+signs_tidy      <- `abuse.signs` %>% arrange(timestamp) %>% mutate(term2 = "signs of child abuse")
+abuseme_tidy    <- `abuses.me` %>% arrange(timestamp) %>% mutate(term2 = "[perpetrator] abuses me")
+partner_tidy    <- `abuse.partner` %>% arrange(timestamp) %>% mutate(term2 = "[male partner] abusing child")
+
+
+# stack into one dataframe
+all <- bind_rows(signs_tidy, abuseme_tidy, partner_tidy)
+
+```
+
+```{r make-plots, echo = F, fig.height = 8, fig.width = 12}
+
+#plot google health trends data individually for each term(s)
+p1 <- ggplot(signs_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,3) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'signs of child abuse' searches")
+
+p2 <- ggplot(abuseme_tidy, aes(x = timestamp, y = value)) +
+  geom_line() +  ylim(0,3) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'[perpetrator] abuses me' searches")
+
+p3 <- ggplot(partner_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,3) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("'how to tell if [male partner] abuses child' searches")
+
+grid.arrange(p1, p2, p3, nrow = 1)
+
+#plot by search term(s)
+ggplot(all, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = term2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("National weekly data for 2019, by child abuse search term") +
+  labs(col="Search term") 
+
+
+```
+
+
