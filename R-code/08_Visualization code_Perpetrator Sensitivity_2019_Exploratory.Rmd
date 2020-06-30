@@ -1,0 +1,444 @@
+---
+title: "Explore Google Health Trends perpetrator sensitivity search term test runs"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+One sentence summary about objective of this doc -- to explore google health trends for child abuse and IPV-related search terms by examining data for 2019 (prior to study period). Specifically, explore perpetrator sensitivity checks.
+
+Weekly searches at the national and state levels for 2019:
+
+Terms included: hit, hits, hurt, hurts, beat
+
+Perpetrators included: 
+Child abuse: 
+1. mom, mother, stepmom, stepmother, mom's, moms;
+ 2. dad, father, stepdad, stepfather, dad's, dads;
+ 3. grandma, grandpa, brother, sister, uncle, aunt;
+ 4. mom, mother, dad, father, brother, sister
+
+Intimate partner violence:
+1. husband, boyfriend, ex boyfriend, ex husband, partner, spouse;
+ 2. wife, girlfriend, ex girlfriend, ex wife, partner, spouse;
+ 3. husband, wife, boyfriend, girlfriend, partner, spouse
+
+
+```{r load-libraries, warning=F, message=F, echo=F}
+# install.packages("geofacet") #install once if you don't already have the package
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(stringr)
+library(directlabels)
+```
+
+```{r import-data, echo=F, message=F}
+
+#read in data
+
+## CHILD ABUSE PERPETRATOR SENSITIVITY CHECK
+# Dad as perpetrator
+#Set filepath for highest level query folder
+Myfilepath.dad <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Perp Sensitivity/Dad-hit-hurt-beat/"
+
+#Find all files in the subfolders
+filenames.dad <- list.files(Myfilepath.dad, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.dad <- filenames.dad %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.dad <- select(AllQueries.dad,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+state_list <- c(state.abb, "DC")
+state2 <- sort(rep(state_list, 52))
+US <- rep("US", 52)
+state3 <- c(US, state2)
+
+DataToGraph.dad <- cbind(DataToGraph.dad, state2=state3)
+
+# Mom as perpetrator
+#Set filepath for highest level query folder
+Myfilepath.mom <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Perp Sensitivity/Mom-hit-hurt-beat/"
+
+#Find all files in the subfolders
+filenames.mom <- list.files(Myfilepath.mom, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.mom <- filenames.mom %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.mom <- select(AllQueries.mom,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+state_list <- c(state.abb, "DC")
+state2 <- sort(rep(state_list, 52))
+US <- rep("US", 52)
+state3 <- c(US, state2)
+
+DataToGraph.mom <- cbind(DataToGraph.mom, state2=state3)
+
+# Non-parent as perpetrator
+#Set filepath for highest level query folder
+Myfilepath.np <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Perp Sensitivity/NonParent-hit-hurt-beat/"
+
+#Find all files in the subfolders
+filenames.np <- list.files(Myfilepath.np, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.np <- filenames.np %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.np <- select(AllQueries.np,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+state_list <- c(state.abb, "DC")
+state2 <- sort(rep(state_list, 52))
+US <- rep("US", 52)
+state3 <- c(US, state2)
+
+DataToGraph.np <- cbind(DataToGraph.np, state2=state3)
+
+# Dad, mom, siblings combo perpetrator
+#Set filepath for highest level query folder
+Myfilepath.combo <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Perp Sensitivity/Child-mom-dad-bro-sis/"
+
+#Find all files in the subfolders
+filenames.combo <- list.files(Myfilepath.combo, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.combo <- filenames.combo %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.combo <- select(AllQueries.combo,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+state_list <- c(state.abb, "DC")
+state2 <- sort(rep(state_list, 52))
+US <- rep("US", 52)
+state3 <- c(US, state2)
+
+DataToGraph.combo <- cbind(DataToGraph.combo, state2=state3)
+
+#stack into one dataframe:
+all.child.perp <- bind_rows(DataToGraph.dad, DataToGraph.mom, DataToGraph.np, DataToGraph.combo)
+
+
+## IPV PERPETRATOR SENSITIVITY CHECK
+# Male as perpetrator
+#Set filepath for highest level query folder
+Myfilepath.male <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Perp Sensitivity/IPV-male-hit-hurt-beat/"
+
+#Find all files in the subfolders
+filenames.male <- list.files(Myfilepath.male, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.male <- filenames.male %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.male <- select(AllQueries.male,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+state_list <- c(state.abb, "DC")
+state2 <- sort(rep(state_list, 52))
+US <- rep("US", 52)
+state3 <- c(US, state2)
+
+DataToGraph.male <- cbind(DataToGraph.male, state2=state3)
+
+# Female as perpetrator
+#Set filepath for highest level query folder
+Myfilepath.female <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Perp Sensitivity/IPV-female-hit-hurt-beat/"
+
+#Find all files in the subfolders
+filenames.female <- list.files(Myfilepath.female, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.female <- filenames.female %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.female <- select(AllQueries.female,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+state_list <- c(state.abb, "DC")
+state2 <- sort(rep(state_list, 52))
+US <- rep("US", 52)
+state3 <- c(US, state2)
+
+DataToGraph.female <- cbind(DataToGraph.female, state2=state3)
+
+# Male, female, neutral as perpetrator combo
+#Set filepath for highest level query folder
+Myfilepath.ipvcomb <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Perp Sensitivity/IPV-wife-gf-husband-bf-partner-spouse/"
+
+#Find all files in the subfolders
+filenames.ipvcomb <- list.files(Myfilepath.ipvcomb, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.ipvcomb <- filenames.ipvcomb %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.ipvcomb <- select(AllQueries.ipvcomb,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+state_list <- c(state.abb, "DC")
+state2 <- sort(rep(state_list, 52))
+US <- rep("US", 52)
+state3 <- c(US, state2)
+
+DataToGraph.ipvcomb <- cbind(DataToGraph.ipvcomb, state2=state3)
+
+#stack into one dataframe:
+all.ipv.perp <- bind_rows(DataToGraph.male, DataToGraph.female, DataToGraph.ipvcomb)
+
+
+```
+
+
+```{r plots1, echo = F, fig.height = 10, fig.width = 14}
+#plot national-level data - comparing across child abuse perpetrators and IPV perpetrators
+## Child abuse perpetrators
+cat("Child abuse perpetrator sensitivity: dad vs. mom vs. non-parent vs. dad/mom/sibling, national level")
+ggplot(all.child.perp, aes(x = timestamp, y = value)) +
+  geom_line(data = all.child.perp %>% filter(state2 == "US"), aes(col = Query)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="Search term") +
+  ggtitle("\n\nNational weekly data for 2019 - 'dad vs. mom vs. non-parent vs. dad/mom/sibling, hit(s), hurt(s), beat' searches") 
+```
+
+
+
+```{r plots2, echo = F, fig.height = 14, fig.width = 22}
+#plot weekly, state-level data - geofacet plots
+## Child abuse perpetrators
+cat("Child abuse perpetrator sensitivity: dad vs. mom vs. non-parent, state level - Geofacet plots")
+#dad
+cat("'dad'/'father'/'stepdad'/'stepfather'/'dad's'/'dads' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.dad %>% filter(state2 != "US"), aes(x = timestamp, y = value)) +
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild physical abuse - dad, by state w/ total US (black line), Geofacet plot") +
+  theme(plot.title = element_text(size=18)) + 
+  facet_geo(~ state2) + 
+  geom_line(data = DataToGraph.dad %>% filter(state2 == "US"), linetype = "solid")
+
+#mom
+cat("'mom'/'mother'/'stepmom'/'stepmother'/'mom's'/'moms' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.mom %>% filter(state2 != "US"), aes(x = timestamp, y = value)) +
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild physical abuse - mom, by state w/ total US (black line), Geofacet plot") +
+  theme(plot.title = element_text(size=18)) + 
+  facet_geo(~ state2) + 
+  geom_line(data = DataToGraph.mom %>% filter(state2 == "US"), linetype = "solid")
+
+#non-parent
+cat("'grandma'/'grandpa'/'brother'/'sister'/'uncle'/'aunt' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.np %>% filter(state2 != "US"), aes(x = timestamp, y = value)) +
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild physical abuse - non-parent, by state w/ total US (black line), Geofacet plot") +
+  theme(plot.title = element_text(size=18)) + 
+  facet_geo(~ state2) + 
+  geom_line(data = DataToGraph.np %>% filter(state2 == "US"), linetype = "solid")
+
+#dad/mom/sibling combination
+cat("'dad'/'father'/'mom'/'mother'/'brother'/'sister' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.combo %>% filter(state2 != "US"), aes(x = timestamp, y = value)) +
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild physical abuse - dad/mom/sibling combo, by state w/ total US (black line), Geofacet plot") +
+  theme(plot.title = element_text(size=18)) + 
+  facet_geo(~ state2) + 
+  geom_line(data = DataToGraph.combo %>% filter(state2 == "US"), linetype = "solid")
+
+```
+
+
+
+```{r plots3, echo = F, fig.height = 10, fig.width = 14}
+#plot weekly, state-level data
+## Child abuse perpetrators
+#dad
+cat("Child abuse perpetrator sensitivity: dad vs. mom vs. non-parent, state level")
+cat("'dad'/'father'/'stepdad'/'stepfather'/'dad's'/'dads' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.dad, aes(x = timestamp, y = value)) +
+  geom_line(data = DataToGraph.dad %>% filter(state2 != "US"), aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild physical abuse - dad, by state w/ total US (black line)") + 
+  geom_line(data = DataToGraph.dad %>% filter(state2 == "US"), linetype = "solid")  +
+  geom_dl(aes(label = state2), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+#mom
+cat("'mom'/'mother'/'stepmom'/'stepmother'/'mom's'/'moms' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.mom, aes(x = timestamp, y = value)) +
+  geom_line(data = DataToGraph.mom %>% filter(state2 != "US"), aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild physical abuse - mom, by state w/ total US (black line)") + 
+  geom_line(data = DataToGraph.mom %>% filter(state2 == "US"), linetype = "solid")  +
+  geom_dl(aes(label = state2), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+#non-parent
+cat("'grandma'/'grandpa'/'brother'/'sister'/'uncle'/'aunt' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.np, aes(x = timestamp, y = value)) +
+  geom_line(data = DataToGraph.np %>% filter(state2 != "US"), aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild physical abuse - non-parent, by state w/ total US (black line)") + 
+  geom_line(data = DataToGraph.np %>% filter(state2 == "US"), linetype = "solid")  +
+  geom_dl(aes(label = state2), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+#dad/mom/sibling combination
+cat("'dad'/'father'/'mom'/'mother'/'brother'/'sister' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.combo, aes(x = timestamp, y = value)) +
+  geom_line(data = DataToGraph.combo %>% filter(state2 != "US"), aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild physical abuse - dad/mom/sibling combo, by state w/ total US (black line)") + 
+  geom_line(data = DataToGraph.combo %>% filter(state2 == "US"), linetype = "solid")  +
+  geom_dl(aes(label = state2), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+```
+
+
+
+```{r plots4, echo = F, fig.height = 10, fig.width = 14}
+#plot national-level data - comparing across child abuse perpetrators and IPV perpetrators
+## IPV perpetrators
+cat("IPV perpetrator sensitivity: male vs. female vs. combination perpetrator, national level")
+ggplot(all.ipv.perp, aes(x = timestamp, y = value)) +
+  geom_line(data = all.ipv.perp %>% filter(state2 == "US"), aes(col = Query)) + 
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="Search term") +
+  ggtitle("\n\nNational weekly data for 2019 - 'male vs. female vs. combination partner, hit(s), hurt(s), beat' searches")
+
+```
+
+
+
+```{r plots5, echo = F, fig.height = 14, fig.width = 22}
+#plot weekly, state-level data - geofacet plots
+## IPV perpetrators
+#male
+cat("IPV perpetrator sensitivity: male vs. female perpetrator, state level - Geofacet plots")
+cat("'husband'/'boyfriend'/'ex boyfriend'/'ex husband'/'partner'/'spouse' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.male %>% filter(state2 != "US"), aes(x = timestamp, y = value)) +
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nIPV physical abuse - male partner, by state w/ total US (black line), Geofacet plot") +
+  theme(plot.title = element_text(size=18)) + 
+  facet_geo(~ state2) + 
+  geom_line(data = DataToGraph.male %>% filter(state2 == "US"), linetype = "solid")
+
+#female
+cat("'wife'/'girlfriend'/'ex girlfriend'/'ex wife'/'partner'/'spouse' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.female %>% filter(state2 != "US"), aes(x = timestamp, y = value)) +
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nIPV physical abuse - female partner, by state w/ total US (black line), Geofacet plot") +
+  theme(plot.title = element_text(size=18)) + 
+  facet_geo(~ state2) + 
+  geom_line(data = DataToGraph.female %>% filter(state2 == "US"), linetype = "solid")
+
+
+#male/female/neutral combination
+cat("'husband'/'wife'/'boyfriend'/'girlfriend'/'partner'/'spouse' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.ipvcomb %>% filter(state2 != "US"), aes(x = timestamp, y = value)) +
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nIPV physical abuse - male/female/neutral partner combo, by state w/ total US (black line), Geofacet plot") +
+  theme(plot.title = element_text(size=18)) + 
+  facet_geo(~ state2) + 
+  geom_line(data = DataToGraph.ipvcomb %>% filter(state2 == "US"), linetype = "solid")
+```
+
+
+
+```{r plots6, echo = F, fig.height = 10, fig.width = 14}
+## IPV perpetrators
+#male 
+cat("IPV perpetrator sensitivity: male vs. female perpetrator, state level")
+cat("'husband'/'boyfriend'/'ex boyfriend'/'ex husband'/'partner'/'spouse' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.male, aes(x = timestamp, y = value)) +
+  geom_line(data = DataToGraph.male %>% filter(state2 != "US"), aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nIPVphysical abuse - male partner, by state w/ total US (black line)") + 
+  geom_line(data = DataToGraph.male %>% filter(state2 == "US"), linetype = "solid")  +
+  geom_dl(aes(label = state2), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+#female
+cat("'wife'/'girlfriend'/'ex girlfriend'/'ex wife'/'partner'/'spouse' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.female, aes(x = timestamp, y = value)) +
+  geom_line(data = DataToGraph.female %>% filter(state2 != "US"), aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nIPV physical abuse - female partner, by state w/ total US (black line)") + 
+  geom_line(data = DataToGraph.female %>% filter(state2 == "US"), linetype = "solid")  +
+  geom_dl(aes(label = state2), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+#male/female/neutral combo
+cat("'husband'/'wife'/'boyfriend'/'girlfriend'/'partner'/'spouse' with 'hit(s)', 'hurt(s)', 'beat'")
+ggplot(DataToGraph.ipvcomb, aes(x = timestamp, y = value)) +
+  geom_line(data = DataToGraph.ipvcomb %>% filter(state2 != "US"), aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nIPV physical abuse - male/female/neutral partner combo, by state w/ total US (black line)") + 
+  geom_line(data = DataToGraph.ipvcomb %>% filter(state2 == "US"), linetype = "solid")  +
+  geom_dl(aes(label = state2), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+```

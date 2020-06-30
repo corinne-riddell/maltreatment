@@ -1,15 +1,13 @@
 ---
 title: "Explore Google Health Trends child abuse-related search term test runs"
 output:
-  word_document: default
   html_document: default
+  word_document: default
   pdf_document: default
 ---
 One sentence summary about objective of this doc -- to explore google health trends for child abuse-related search terms by examining data for 2019 (prior to study period).
 
 Weekly searches at the national and state levels (subset of terms) for 2019:
-
-Terms included: hit, hits, beat, beats, grab, grabbed, grabs, harm, harmed, harms, hurt, hurts, kick, kicked, kicks, punch, punched, punches, push, pushed, pushes, slap, slapped, slaps
 
 Perpetrators included: mom, mother, stepmom, stepmother, mom's boyfriend, mom boyfriend, mom's girlfriend, mom girlfriend, mom's friend, mom friend, dad, father, stepdad, stepfather, dad's girlfriend, dad girlfriend, dad's friend, dad friend, dad's boyfriend, dad boyfriend, grandma, grandpa, brother, sister, uncle, aunt 
 
@@ -25,19 +23,143 @@ library(gridExtra)
 ```{r import-data, echo=F, message=F}
 
 #read in data
-term_list <- cbind('hit', 'hits', 'beat', 'beats', 'grab', 'grabbed', 'grabs', 'harm', 'harmed', 'harms', 'hurt', 'hurts', 'kick', 'kicked', 'kicks', 'punch', 'punched', 'punches', 'push', 'pushed', 'pushes', 'slap', 'slapped', 'slaps')
+#physical abuse
+term_list1 <- cbind('hit', 'hits', 'beat', 'beats', 'grab', 'grabbed', 'grabs', 'harm', 'harmed', 'harms', 'hurt', 'hurts', 'kick', 'kicked', 'kicks', 'punch', 'punched', 'punches', 'push', 'pushed', 'pushes', 'slap', 'slapped', 'slaps')
 
 #create term-specific dataframes
-for(i in term_list[1:24]){
+for(i in term_list1[1:24]){
   counter <- 1
-  assign(i, read.csv(paste0("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/Child Abuse/Child-",
+  assign(i, read_csv(paste0("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/May 28 - June 3 Exploratory Searches/Child Abuse/Child-",
                           i, "-1/states/US/US-child-", i, "-1.csv")
+  )
+)
+}
+
+#emotional abuse
+term_list2 <- cbind("afraid-of", "does-not-care", "doesnt-care", "doesn-t-care", "does-not-love", "doesnt-love", "doesn-t-love", "hate", "hates", "scare", "scared", "scares", "swear", "swore", "swears", "threaten", "threatened", "threatens", "yell", "yelled", "yells")
+
+#create term-specific dataframes
+for(i in term_list2[1:21]){
+  counter <- 1
+  assign(i, read_csv(paste0("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Emotional Abuse/Child-",
+                          i, "-1/states/US/US-child-", i, "-1.csv")
+  )
+)
+}
+
+# pull in "put down" terms separately - different folder name
+put.down <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Emotional Abuse/Child-put-down-2/states/US/US-child-put-down-2.csv")
+
+puts.down <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Emotional Abuse/Child-puts-down-2/states/US/US-child-puts-down-2.csv")
+
+# pull in additional searches separately - different folder name
+# "scared of [perp]"
+scared.of <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Abuse 2/Emtional Abuse/Scared-Of/states/US/US-Scared-of.csv")
+
+# "[perp] scared me] for 2018 - same patterning as for 2019
+scared.2018 <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Abuse 2/perpetrator-scared-me-2018/states/US/US-perpetrator-scared-me-2018.csv")
+
+#"scared of [perp]" with quotes
+scared.of2 <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/NEW Child Abuse Queries with Quotes/scared-of-with-quotes/states/US/US-scared-of-with-quotes.csv")
+
+#"afraid of [perp]" with quotes
+afraid.of2 <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/NEW Child Abuse Queries with Quotes/afraid-of-with-quotes/states/US/US-afraid-of-with-quotes.csv")
+
+#"scared of [perp]" without quotes
+scared.of3 <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/NEW Child Abuse Queries with Quotes/scared-of-without-quotes/states/US/US-scared-of-without-quotes.csv")
+
+#"afraid of [perp]" without quotes
+afraid.of3 <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/NEW Child Abuse Queries with Quotes/afriad-of-without-quotes/states/US/US-afraid-of-without-quotes.csv")
+
+##################
+## sexual abuse ##
+##################
+
+#create term-specific dataframes - UPDATE THIS!
+#for(i in term_list3[1:136]){
+#  counter <- 1
+#  assign(i, read_csv(paste0("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 #Exploratory Searches/Child Sexual Abuse/Child-",
+#                          i, "-1/states/US/US-child-", i, "-1.csv")
+#  )
+#)
+#}
+
+#Set filepath for highest level query folder
+Myfilepath.sex <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Sexual Abuse/"
+
+#Find all files in the subfolders
+filenames.sex <- list.files(Myfilepath.sex, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.sex <- filenames.sex %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat", "Extra","Query","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by query and arrange by time
+DataToGraph.sex <- select(AllQueries.sex,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(Query) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+# Create a column with cleaner versions of the query terms for plotting
+Query2 <- unlist(strsplit(DataToGraph.sex$Query, split='-1', fixed=TRUE))
+
+DataToGraph.sex <- cbind(DataToGraph.sex, Query2=Query2)
+
+#pull in additional sexual abuse search terms
+#Set filepath for highest level query folder
+Myfilepath.sex2 <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Abuse 2/Sexual Abuse/"
+
+#Find all files in the subfolders
+filenames.sex2 <- list.files(Myfilepath.sex2, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.sex2 <- filenames.sex2 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Abuse-Cat2","Extra","Query","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by query and arrange by time
+DataToGraph.sex2 <- select(AllQueries.sex2,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange",-"Abuse-Cat2", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(Query) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#bind together all sexual abuse terms
+DataToGraph.sex.final <- rbind(DataToGraph.sex, DataToGraph.sex2)
+
+
+#############
+## Neglect ##
+#############
+
+term_list4 <- cbind("busy", "doesn-t-care", "doesn-t-take-care", "doesnt-care", "doesnt-take-care", "drinks-alcohol", "drinks-beer", "had-no-clothing", "had-no-food", "has-no-clothing", "has-no-food", "left-alone", "no-time", "not-safe-with", "passed-out", "used-drugs", "uses-drugs")
+
+#create term-specific dataframes
+for(i in term_list4[1:17]){
+  counter <- 1
+  assign(i, read_csv(paste0("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Neglect/Child-",
+                          i, "-1/states/US/US-child-", i, "-1.csv")
+  )
+)
+}
+
+# pull in additional searches for neglect
+term_list5 <- cbind("can-not-wake-up-perpetrator", "can-t-wake-up-perpetrator", "cannot-wake-up-perpetrator", "perpetrator-drinks-a-lot", "perpetrator-drinks-alot", "perpetrator-high", "perpetrator-high-a-lot", "perpetrator-high-alot", "perpetrator-is-drunk", "perpetrator-is-not-home", "perpetrator-never-home", "perpetrator-not-home", "perpetrator-slurs-his-her-speech", "perpetrator-slurs-speech", "perpetrator-slurs-their-speech")
+
+#create term-specific dataframes
+for(i in term_list5[1:15]){
+  counter <- 1
+  assign(i, read_csv(paste0("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Abuse 2/Neglect/",
+                          i, "/states/US/US-", i, ".csv")
   )
 )
 }
 ```
 
 ```{r tidy-the-data, echo=F}
+## physical abuse
 hit_tidy     <- `hit` %>% arrange(timestamp) %>% mutate(term2 = "hit")
 hits_tidy    <- `hits` %>% arrange(timestamp) %>% mutate(term2 = "hits")
 beat_tidy    <- `beat` %>% arrange(timestamp) %>% mutate(term2 = "beat")
@@ -64,13 +186,87 @@ slapped_tidy <- `slapped` %>% arrange(timestamp) %>% mutate(term2 = "slapped")
 slaps_tidy   <- `slaps` %>% arrange(timestamp) %>% mutate(term2 = "slaps")
 
 # stack into one dataframe
-all <- bind_rows(hit_tidy, hits_tidy, beat_tidy, beats_tidy, grab_tidy, grabbed_tidy, grabs_tidy, harm_tidy, harmed_tidy, harms_tidy, hurt_tidy, hurts_tidy, kick_tidy, kicked_tidy, kicks_tidy, punch_tidy, punched_tidy, punches_tidy, push_tidy, pushed_tidy, pushes_tidy, slap_tidy, slapped_tidy, slaps_tidy)
+all.phys <- bind_rows(hit_tidy, hits_tidy, beat_tidy, beats_tidy, grab_tidy, grabbed_tidy, grabs_tidy, harm_tidy, harmed_tidy, harms_tidy, hurt_tidy, hurts_tidy, kick_tidy, kicked_tidy, kicks_tidy, punch_tidy, punched_tidy, punches_tidy, push_tidy, pushed_tidy, pushes_tidy, slap_tidy, slapped_tidy, slaps_tidy)
+
+## emotional abuse
+afraid_tidy     <- `afraid-of` %>% arrange(timestamp) %>% mutate(term2 = "afraid of [perp]")
+afraid2_tidy     <- `afraid.of2` %>% arrange(timestamp) %>% mutate(term2 = "afraid of [perp] w/ quotes 6/24/2020")
+afraid3_tidy     <- `afraid.of3` %>% arrange(timestamp) %>% mutate(term2 = "afraid of [perp] w/o quotes 6/24/2020")
+dncare1_tidy    <- `does-not-care` %>% arrange(timestamp) %>% mutate(term2 = "does not care about")
+dncare2_tidy    <- `doesnt-care` %>% arrange(timestamp) %>% mutate(term2 = "doesnt care about")
+dncare3_tidy    <- `doesn-t-care` %>% arrange(timestamp) %>% mutate(term2 = "doesn't care about")
+dnlove1_tidy    <- `does-not-love` %>% arrange(timestamp) %>% mutate(term2 = "does not love")
+dnlove2_tidy    <- `doesnt-love` %>% arrange(timestamp) %>% mutate(term2 = "doesnt love")
+dnlove3_tidy    <- `doesn-t-love` %>% arrange(timestamp) %>% mutate(term2 = "doesn't love")
+hate_tidy       <- `hate` %>% arrange(timestamp) %>% mutate(term2 = "hate")
+hates_tidy      <- `hates` %>% arrange(timestamp) %>% mutate(term2 = "hates")
+putsdown_tidy   <- `puts.down` %>% arrange(timestamp) %>% mutate(term2 = "puts me down")
+putdown_tidy    <- `put.down` %>% arrange(timestamp) %>% mutate(term2 = "put me down")
+scare_tidy      <- `scare` %>% arrange(timestamp) %>% mutate(term2 = "scare")
+scared_tidy     <- `scared` %>% arrange(timestamp) %>% mutate(term2 = "scared")
+scares_tidy     <- `scares` %>% arrange(timestamp) %>% mutate(term2 = "scares")
+swear_tidy      <- `swear` %>% arrange(timestamp) %>% mutate(term2 = "swear at")
+swore_tidy      <- `swore` %>% arrange(timestamp) %>% mutate(term2 = "swore at")
+swears_tidy     <- `swears` %>% arrange(timestamp) %>% mutate(term2 = "swears at")
+threaten_tidy   <- `threaten` %>% arrange(timestamp) %>% mutate(term2 = "threaten")
+threatened_tidy <- `threatened` %>% arrange(timestamp) %>% mutate(term2 = "threatened")
+threatens_tidy  <- `threatens` %>% arrange(timestamp) %>% mutate(term2 = "threatens")
+yell_tidy       <- `yell` %>% arrange(timestamp) %>% mutate(term2 = "yell at")
+yelled_tidy     <- `yelled` %>% arrange(timestamp) %>% mutate(term2 = "yelled at")
+yells_tidy      <- `yells` %>% arrange(timestamp) %>% mutate(term2 = "yells at")
+scared.2018_tidy  <- `scared.2018` %>% arrange(timestamp) %>% mutate(term2 = "scared - 2018")
+scaredof_tidy     <- `scared.of` %>% arrange(timestamp) %>% mutate(term2 = "scared of [perp]")
+scaredof2_tidy     <- `scared.of2` %>% arrange(timestamp) %>% mutate(term2 = "scared of [perp] w/ quotes 6/24/2020")
+scaredof3_tidy     <- `scared.of3` %>% arrange(timestamp) %>% mutate(term2 = "scared of [perp] w/o quotes 6/24/2020")
+# stack into one dataframe
+all.emotion <- bind_rows(afraid_tidy, afraid2_tidy, afraid3_tidy, dncare1_tidy, dncare2_tidy, dncare3_tidy, dnlove1_tidy, dnlove2_tidy, dnlove3_tidy, hate_tidy, hates_tidy, putsdown_tidy, putdown_tidy, scare_tidy, scared_tidy, scared.2018_tidy, scares_tidy, scaredof_tidy, scaredof2_tidy, scaredof3_tidy, swear_tidy, swore_tidy, swears_tidy, threaten_tidy, threatened_tidy, threatens_tidy, yell_tidy, yelled_tidy, yells_tidy)
+
+
+## neglect
+busy_tidy       <- `busy` %>% arrange(timestamp) %>% mutate(term2 = "[perp] busy")
+notime_tidy     <- `no-time` %>% arrange(timestamp) %>% mutate(term2 = "[perp] has no time for me")
+alone_tidy      <- `left-alone` %>% arrange(timestamp) %>% mutate(term2 = "[perp] left me alone")
+dncare4_tidy    <- `doesn-t-care` %>% arrange(timestamp) %>% mutate(term2 = "[perp] doesn't care about me")
+dncare5_tidy    <- `doesnt-care` %>% arrange(timestamp) %>% mutate(term2 = "[perp] doesnt care about me")
+dntcare1_tidy   <- `doesn-t-take-care` %>% arrange(timestamp) %>% mutate(term2 = "[perp] doesn't take care of me")
+dntcare2_tidy   <- `doesnt-take-care` %>% arrange(timestamp) %>% mutate(term2 = "[perp] doesnt take care of me")
+alcohol_tidy   <- `drinks-alcohol` %>% arrange(timestamp) %>% mutate(term2 = "[perp] drinks alcohol")
+beer_tidy      <- `drinks-beer` %>% arrange(timestamp) %>% mutate(term2 = "[perp] drinks beer")
+nocloth1_tidy   <- `had-no-clothing` %>% arrange(timestamp) %>% mutate(term2 = "[perp] had no clothing for me")
+nocloth2_tidy   <- `has-no-clothing` %>% arrange(timestamp) %>% mutate(term2 = "[perp] has no clothing for me")
+nofood1_tidy   <- `had-no-food` %>% arrange(timestamp) %>% mutate(term2 = "[perp] had no food for me")
+nofood2_tidy   <- `has-no-food` %>% arrange(timestamp) %>% mutate(term2 = "[perp] has no food for me")
+notsafe_tidy   <- `not-safe-with` %>% arrange(timestamp) %>% mutate(term2 = "i am not safe with [perp]")
+passout_tidy   <- `passed-out` %>% arrange(timestamp) %>% mutate(term2 = "[perp] passed out")
+drugs1_tidy   <- `used-drugs` %>% arrange(timestamp) %>% mutate(term2 = "[perp] used drugs")
+drugs2_tidy   <- `uses-drugs` %>% arrange(timestamp) %>% mutate(term2 = "[perp] uses drugs") # also consider "ing" tense?
+cnwu1_tidy       <- `can-not-wake-up-perpetrator` %>% arrange(timestamp) %>% mutate(term2 = "can not wake up [perp]")
+cnwu2_tidy     <- `can-t-wake-up-perpetrator` %>% arrange(timestamp) %>% mutate(term2 = "can't wake up [perp]")
+cnwu3_tidy      <- `cannot-wake-up-perpetrator` %>% arrange(timestamp) %>% mutate(term2 = "cannot wake up [perp]")
+drinks1_tidy    <- `perpetrator-drinks-a-lot` %>% arrange(timestamp) %>% mutate(term2 = "[perp] drinks a lot")
+drinks2_tidy    <- `perpetrator-drinks-alot` %>% arrange(timestamp) %>% mutate(term2 = "[perp] drinks alot")
+high1_tidy   <- `perpetrator-high` %>% arrange(timestamp) %>% mutate(term2 = "[perp] is high")
+high2_tidy   <- `perpetrator-high-a-lot` %>% arrange(timestamp) %>% mutate(term2 = "[perp] is high a lot")
+high3_tidy   <- `perpetrator-high-alot` %>% arrange(timestamp) %>% mutate(term2 = "[perp] is high alot")
+drunk_tidy      <- `perpetrator-is-drunk` %>% arrange(timestamp) %>% mutate(term2 = "[perp] is drunk")
+nothome1_tidy   <- `perpetrator-is-not-home` %>% arrange(timestamp) %>% mutate(term2 = "[perp] is not home")
+nothome2_tidy   <- `perpetrator-never-home` %>% arrange(timestamp) %>% mutate(term2 = "[perp] never home")
+nothome3_tidy   <- `perpetrator-not-home` %>% arrange(timestamp) %>% mutate(term2 = "[perp] not home")
+slurs1_tidy   <- `perpetrator-slurs-his-her-speech` %>% arrange(timestamp) %>% mutate(term2 = "[perp] slurs her/his speech")
+slurs2_tidy   <- `perpetrator-slurs-speech` %>% arrange(timestamp) %>% mutate(term2 = "[perp] slurs speech")
+slurs3_tidy   <- `perpetrator-slurs-their-speech` %>% arrange(timestamp) %>% mutate(term2 = "[perp] slurs their speech")
+
+# stack into one dataframe
+all.neglect <- bind_rows(busy_tidy, notime_tidy, alone_tidy, dncare4_tidy, dncare5_tidy, dntcare1_tidy, dntcare2_tidy, alcohol_tidy, beer_tidy, nocloth1_tidy, nocloth2_tidy, nofood1_tidy, nofood2_tidy, notsafe_tidy, passout_tidy, drugs1_tidy, drugs2_tidy, cnwu1_tidy, cnwu2_tidy, cnwu3_tidy, drinks1_tidy, drinks2_tidy, high1_tidy, high2_tidy, high3_tidy, drunk_tidy, nothome1_tidy, nothome2_tidy, nothome3_tidy, slurs1_tidy, slurs2_tidy, slurs3_tidy)
 
 ```
 
-```{r make-plots, echo = F, fig.height = 8, fig.width = 12}
+
+```{r make-plots, echo = F, fig.height = 12, fig.width = 16}
 
 #plot google health trends data individually for each term(s)
+#physical abuse
+cat("Child Physical Abuse")
 p1 <- ggplot(hit_tidy, aes(x = timestamp, y = value)) +
   geom_line() + ylim(0,8) +
   labs(x = "Date", y = "Search outcome") + 
@@ -194,13 +390,414 @@ p24 <- ggplot(slaps_tidy, aes(x = timestamp, y = value)) +
 grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, nrow = 6)
 
 #plot by search term(s)
-ggplot(all, aes(x = timestamp, y = value)) +
+ggplot(all.phys, aes(x = timestamp, y = value)) +
   geom_line(aes(col = term2)) +
   labs(x = "Date", y = "Search outcome") + 
-  ggtitle("National weekly data for 2019, by child abuse search term") +
+  ggtitle("\n\n\nNational weekly data for 2019, by child physical abuse search term") +
+  labs(col="Search term") 
+
+
+#emotional abuse
+cat("Child Emotional Abuse")
+p1 <- ggplot(afraid_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("afraid of [perp]")
+
+p2 <- ggplot(afraid2_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("afraid of [perp] w/ quotes 6/24/20")
+
+p3 <- ggplot(afraid3_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("afraid of [perp] w/o quotes 6/24/20")
+
+p4 <- ggplot(dncare1_tidy, aes(x = timestamp, y = value)) +
+  geom_line() +  ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] does not care about me")
+
+p5 <- ggplot(dncare2_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] doesnt care about me")
+
+p6 <- ggplot(dncare3_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] doesn't care about me")
+
+p7 <- ggplot(dnlove1_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] does not love me")
+
+p8 <- ggplot(dnlove2_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] doesnt love me")
+
+p9 <- ggplot(dnlove3_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] doesn't love me")
+
+p10 <- ggplot(hate_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hate me")
+
+p11 <- ggplot(hates_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hates me")
+
+p12 <- ggplot(putsdown_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] puts me down")
+
+p13 <- ggplot(putdown_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] put me down")
+
+p14 <- ggplot(scare_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] scare me")
+
+p15 <- ggplot(scared_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] scared me - 2019")
+
+p16 <- ggplot(scared.2018_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] scared me - 2018")
+
+p17 <- ggplot(scares_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] scares me")
+
+p18 <- ggplot(scaredof_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("scared of [perp]")
+
+p19 <- ggplot(scaredof2_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("scared of [perp] w/ quotes - 6/24/20")
+
+p20 <- ggplot(scaredof3_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("scared of [perp] w/o quotes - 6/24/20")
+
+p21 <- ggplot(swear_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] swear at me")
+
+p22 <- ggplot(swore_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] swore at me")
+
+p23 <- ggplot(swears_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] swears at me")
+
+p24 <- ggplot(threaten_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] threaten me")
+
+p25 <- ggplot(threatened_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] threatened me")
+
+p26 <- ggplot(threatens_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] threatens me")
+
+p27 <- ggplot(yell_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] yell at me")
+
+p28 <- ggplot(yelled_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] yelled at me")
+
+p29 <- ggplot(yells_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,13) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] yells at me")
+
+
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p23, p24, p25, p26, p27, p28, p29, nrow = 8)
+
+#plot by search term(s)
+ggplot(all.emotion, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = term2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("\n\n\nNational weekly data for 2019, by child emotional abuse search term") +
+  labs(col="Search term") 
+
+
+#neglect
+cat("Child Neglect")
+ggplot(all.neglect, aes(x = timestamp, y = value)) +
+  geom_line(color='darkblue') + 
+  labs(x = "Date", y = "Search outcome") + 
+  facet_wrap(~term2, ncol=4, nrow=8) #+
+  #theme(axis.text = element_text(size = 12), 
+  #      axis.title = element_text(size = 12, face = "bold"),
+  #      strip.text = element_text(size = 12))
+
+#plot by search term(s)
+ggplot(all.neglect, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = term2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("\n\n\nNational weekly data for 2019, by child neglect search term") +
   labs(col="Search term") 
 
 
 ```
+
+```{r plots2, echo = F, fig.height = 50, fig.width = 20}
+
+#plot google health trends data individually for each term(s)
+#Sexual abuse
+cat("Child Sexual Abuse")
+ggplot(DataToGraph.sex, aes(x = timestamp, y = value)) +
+  geom_line(color='darkblue') + 
+  labs(x = "Date", y = "Search outcome") + 
+  facet_wrap(~Query2, ncol=4, nrow=60) +
+  theme(axis.text = element_text(size = 12), 
+        axis.title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(size = 12))
+```
+
+
+```{r plots3, echo = F, fig.height = 8, fig.width = 12}
+
+#plot google health trends data individually for each term(s)
+#Sexual abuse
+cat("Child Sexual Abuse continued - additional search terms")
+ggplot(DataToGraph.sex2, aes(x = timestamp, y = value)) +
+  geom_line(color='darkblue') + 
+  labs(x = "Date", y = "Search outcome") + 
+  facet_wrap(~Query, ncol=4) 
+```
+
+
+
+```{r plots4, echo = F, fig.height = 8, fig.width = 12}
+
+#plot terms returning the highest volumes
+cat("Child abuse - search terms returning highest volumes for each domain")
+
+p1 <- ggplot(hit_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hit me")
+
+p2 <- ggplot(hits_tidy, aes(x = timestamp, y = value)) +
+  geom_line() +  ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hits me")
+
+p3 <- ggplot(hurt_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hurt me")
+
+p4 <- ggplot(hurts_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hurts me")
+
+p5 <- ggplot(beat_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] beat me")
+
+p6 <- ggplot(afraid_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("afraid of [perp]")
+
+p7 <- ggplot(hate_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hate me")
+
+p8 <- ggplot(hates_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hates me")
+
+p9 <- ggplot(scaredof_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("scared of [perp]")
+
+p10 <- ggplot(passout_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] passed out")
+
+p11 <- ggplot(high1_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] is high")
+
+p12 <- ggplot(nothome1_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] is not home")
+
+p13 <- ggplot(nothome3_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] not home")
+
+p14 <- ggplot(drunk_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] is drunk")
+
+p15 <- ggplot(DataToGraph.sex %>% filter(Query2 == "Child-had-sex"), aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] had sex with me")
+
+p16 <- ggplot(DataToGraph.sex %>% filter(Query2 == "Child-have-sex"), aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] have sex with me")
+
+p17 <- ggplot(DataToGraph.sex %>% filter(Query2 == "Child-rape"), aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] rape me")
+
+p18 <- ggplot(DataToGraph.sex %>% filter(Query2 == "Child-raped"), aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] raped me")
+
+p19 <- ggplot(DataToGraph.sex2 %>% filter(Query == "perpetrator-touch-my"), aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,40) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] touch my")
+
+#plot of all the highest volume terms
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, nrow = 5)
+
+```
+
+Note: for the "[perpetrator] is not home" and "[perpetrator] not home" searches, when I did a quick search of these using "mom" as the perpetrator in google (incognito so that we don't artificially inflate results), a series of YouTube videos called "When mom isn't home" accounted for all of the results on the first page of results. Additional, the search term "[perpetrator] never home" returned much lower volume, so I worry that these "not home" terms might be capturing something we aren't interested in.
+
+
+```{r plots5, echo = F, fig.height = 8, fig.width = 12}
+cat("Child abuse - search terms returning highest volumes for each domain (excluding '[perp] is high', '[perp] is not home, and '[perp] not home' terms)")
+p20 <- ggplot(hit_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hit me")
+
+p21 <- ggplot(hits_tidy, aes(x = timestamp, y = value)) +
+  geom_line() +  ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hits me")
+
+p22 <- ggplot(hurt_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hurt me")
+
+p23 <- ggplot(hurts_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hurts me")
+
+p24 <- ggplot(beat_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] beat me")
+
+p25 <- ggplot(afraid_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("afraid of [perp]")
+
+p26 <- ggplot(hate_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hate me")
+
+p27 <- ggplot(hates_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] hates me")
+
+p28 <- ggplot(scaredof_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("scared of [perp]")
+
+p29 <- ggplot(passout_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] passed out")
+
+p30 <- ggplot(drunk_tidy, aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] is drunk")
+
+p31 <- ggplot(DataToGraph.sex %>% filter(Query2 == "Child-had-sex"), aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] had sex with me")
+
+p32 <- ggplot(DataToGraph.sex %>% filter(Query2 == "Child-have-sex"), aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] have sex with me")
+
+p33 <- ggplot(DataToGraph.sex %>% filter(Query2 == "Child-rape"), aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] rape me")
+
+p34 <- ggplot(DataToGraph.sex %>% filter(Query2 == "Child-raped"), aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] raped me")
+
+p35 <- ggplot(DataToGraph.sex2 %>% filter(Query == "perpetrator-touch-my"), aes(x = timestamp, y = value)) +
+  geom_line() + ylim(0,16) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("[perp] touch my")
+
+#plot the highest volume terms, excluding some of the really high volume ones
+grid.arrange(p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34, p35, nrow = 4)
+
+```
+
+
 
 

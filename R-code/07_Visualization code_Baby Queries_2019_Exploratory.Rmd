@@ -1,0 +1,53 @@
+---
+title: "Explore Google Health Trends baby-related search term test runs"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+One sentence summary about objective of this doc -- to explore google health trends for baby-related search terms by examining data for 2019 (prior to study period).
+
+Weekly searches at the national level for 2019:
+
+Terms include variations of: "concussions in baby", "bruises in baby", "when to call 911 for [shaken baby/bruises in baby/concussion in baby/baby head injury]", "when to go to [ER/emergency room/ED/emergency department/hospital] for [shaken baby/bruises in baby/concussion in baby/baby head injury". Note: additional query with all the same terms except substituting "babies" instead of "baby"
+
+
+```{r load-libraries, warning=F, message=F, echo=F}
+# install.packages("geofacet") #install once if you don't already have the package
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+```
+
+```{r import-data, echo=F, message=F}
+
+#read in data
+#create term-specific dataframes
+baby <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Baby Searches/Baby/states/US/US-baby-searches.csv")
+
+babies <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Baby Searches/Babies/states/US/US-babies-searches.csv")
+
+```
+
+```{r tidy-the-data, echo=F}
+baby_tidy <- `baby` %>% arrange(timestamp) %>% mutate(term2 = "baby harm search terms")
+babies_tidy <- `babies` %>% arrange(timestamp) %>% mutate(term2 = "babies variation of harm search terms")
+
+# stack into one dataframe
+all <- bind_rows(baby_tidy, babies_tidy)
+
+```
+
+```{r make-plots, echo = F, fig.height = 8, fig.width = 12}
+
+#plot by search term(s)
+ggplot(all, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = term2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("National weekly data for 2019, by baby harm-related search terms") +
+  labs(col="Search term") 
+
+```
+
+

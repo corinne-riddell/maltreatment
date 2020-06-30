@@ -1,15 +1,13 @@
 ---
 title: "Explore Google Health Trends intimate partner violence-related search term test runs"
 output:
-  word_document: default
   html_document: default
+  word_document: default
   pdf_document: default
 ---
 One sentence summary about objective of this doc -- to explore google health trends intimate partner violence-related search terms by examining data pulled for 2019 (prior to study period).
 
 National weekly searches for 2019:
-
-Terms included: hit, hits, hurt, hurts, kick, kicks, kicked, beat, beats, slap, slaps, slapped, grab, grabs, grabbed, push, pushes, pushed, harm, harms, harmed, punch, punches, punched, choke, chokes, choked, strangle, strangles, strangled, slam, slams, slammed 
 
 Perpetrators included: husband, boyfriend, ex-boyfriend, ex-husband, ex boyfriend, ex husband, exboyfriend, exhusband, wife, girlfriend, ex-wife, ex-girlfriend, ex wife, ex girlfriend, exwife, exgirlfriend, partner, ex-partner, expartner, ex partner, spouse, ex-spouse, exspouse, ex spouse, ex, significant other 
 
@@ -20,276 +18,145 @@ library(geofacet)
 library(tidyverse)
 library(magrittr)
 library(gridExtra)
+library(stringr)
 ```
 
 ```{r import-data, echo=F, message=F}
 
-#read in data
-term_list <- cbind('hit', 'hits', 'hurt', 'hurts', 'kick', 'kicks', 'kicked', 'beat', 'beats', 'slap', 'slaps', 'slapped', 'grab', 'grabs', 'grabbed', 'push', 'pushes', 'pushed', 'harm', 'harms', 'harmed', 'punch', 'punches', 'punched', 'choke', 'chokes', 'choked', 'strangle', 'strangles', 'strangled', 'slam', 'slams', 'slammed')
+#read in and clean data
 
-#create term-specific dataframes
-for(i in term_list[1:33]){
-  counter <- 1
-  assign(i, read_csv(paste0("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/IPV-",
-                          i, "-1/states/US/US-IPV-", i, "-1.csv")
-  )
-)
-}
+####################
+## Physical abuse ##
+####################
+#term_list1 <- cbind('hit', 'hits', 'hurt', 'hurts', 'kick', 'kicks', 'kicked', 'beat', 'beats', 'slap', 'slaps', 'slapped', 'grab', 'grabs', 'grabbed', 'push', 'pushes', 'pushed', 'harm', 'harms', 'harmed', 'punch', 'punches', 'punched', 'choke', 'chokes', 'choked', 'strangle', 'strangles', 'strangled', 'slam', 'slams', 'slammed')
+
+#Set filepath for highest level query folder
+Myfilepath.phys <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/May 28 - June 3 Exploratory Searches/IPV/"
+
+#Find all files in the subfolders
+filenames.phys1 <- list.files(Myfilepath.phys, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+#exclude IPV - Asking for help queries
+filenames.phys <- filenames.phys1[11:145]
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.phys <- filenames.phys %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat", "Extra","Query","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by query and arrange by time
+DataToGraph.phys <- select(AllQueries.phys,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(Query) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+# Restrict to only national weekly data ('hit' and 'hurt' have state-level data too)
+DataToGraph.phys <- DataToGraph.phys[which(DataToGraph.phys$State=='US'),]
+
+# Create a column with cleaner versions of the query terms for plotting
+Query2 <- unlist(strsplit(DataToGraph.phys$Query, split='-1', fixed=TRUE))
+
+DataToGraph.phys <- cbind(DataToGraph.phys, Query2=Query2)
+
+#####################
+## Emotional abuse ##
+#####################
+
+#term_list2 <- cbind("afraid-of", "makes-me-afraid", "control", "controlled", "controls", "controlling", "does-not-care", "doesnt-care", "doesn-t-care", "does-not-love", "doesnt-love", "doesn-t-love", "unsafe", "feel-unsafe", "makes-me-feel-unsafe", "hate", "hates", "hating", "insult", "insulted", "insults", "insulting", "put-down", "puts-down", "putting-down", "scare-me", "scared-me", "scares-me", "scaring-me", "scared-of", "swear", "swore", "swears", "swearing", "threaten", "threatened", "threatens", "threatening", "yell", "yelled", "yells", "yelling")
+
+#Set filepath for highest level query folder
+Myfilepath.emo <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/IPV Emotional Abuse/"
+
+#Find all files in the subfolders
+filenames.emo <- list.files(Myfilepath.emo, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.emo <- filenames.emo %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat", "Extra","Query","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by query and arrange by time
+DataToGraph.emo <- select(AllQueries.emo,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(Query) %>% 
+  arrange(timestamp, .by_group=TRUE)
+
+# Create a column with cleaner versions of the query terms for plotting
+Query2 <- unlist(strsplit(DataToGraph.emo$Query, split='-1', fixed=TRUE))
+
+DataToGraph.emo <- cbind(DataToGraph.emo, Query2=Query2)
+
+##################
+## Sexual abuse ##
+##################
+
+#Set filepath for highest level query folder
+Myfilepath.sex <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/IPV Sexual Abuse/"
+
+#Find all files in the subfolders
+filenames.sex <- list.files(Myfilepath.sex, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.sex <- filenames.sex %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat", "Extra","Query","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by query and arrange by time
+DataToGraph.sex <- select(AllQueries.sex,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(Query) %>%
+  arrange(timestamp, .by_group=TRUE)
+
 ```
 
-```{r tidy-the-data, echo=F}
-hit_tidy     <- `hit` %>% arrange(timestamp)
-hits_tidy    <- `hits` %>% arrange(timestamp)
-beat_tidy    <- `beat` %>% arrange(timestamp)
-beats_tidy   <- `beats` %>% arrange(timestamp)
-grab_tidy    <- `grab` %>% arrange(timestamp)
-grabbed_tidy <- `grabbed` %>% arrange(timestamp)
-grabs_tidy   <- `grabs` %>% arrange(timestamp)
-harm_tidy    <- `harm` %>% arrange(timestamp)
-harmed_tidy  <- `harmed` %>% arrange(timestamp)
-harms_tidy   <- `harms` %>% arrange(timestamp)
-hurt_tidy    <- `hurt` %>% arrange(timestamp)
-hurts_tidy   <- `hurts` %>% arrange(timestamp)
-kick_tidy    <- `kick` %>% arrange(timestamp)
-kicked_tidy  <- `kicked` %>% arrange(timestamp)
-kicks_tidy   <- `kicks` %>% arrange(timestamp)
-punch_tidy   <- `punch` %>% arrange(timestamp)
-punched_tidy <- `punched` %>% arrange(timestamp)
-punches_tidy <- `punches` %>% arrange(timestamp)
-push_tidy    <- `push` %>% arrange(timestamp)
-pushed_tidy  <- `pushed` %>% arrange(timestamp)
-pushes_tidy  <- `pushes` %>% arrange(timestamp)
-slap_tidy    <- `slap` %>% arrange(timestamp)
-slapped_tidy <- `slapped` %>% arrange(timestamp)
-slaps_tidy   <- `slaps` %>% arrange(timestamp)
-choke_tidy   <- `choke` %>% arrange(timestamp)
-choked_tidy  <- `choked` %>% arrange(timestamp)
-chokes_tidy  <- `chokes` %>% arrange(timestamp)
-strangle_tidy  <- `strangle` %>% arrange(timestamp)
-strangled_tidy <- `strangled` %>% arrange(timestamp)
-strangles_tidy <- `strangles` %>% arrange(timestamp)
-slam_tidy    <- `slam` %>% arrange(timestamp)
-slammed_tidy <- `slammed` %>% arrange(timestamp)
-slams_tidy   <- `slams` %>% arrange(timestamp)
 
-# create new variable with term for legend
-hit_tidy$term2      <- "hit"
-hits_tidy$term2     <- "hits"
-beat_tidy$term2     <- "beat"
-beats_tidy$term2    <- "beats"
-grab_tidy$term2     <- "grab"
-grabbed_tidy$term2  <- "grabbed"
-grabs_tidy$term2    <- "grabs"
-harm_tidy$term2     <- "harm"
-harmed_tidy$term2   <- "harmed"
-harms_tidy$term2    <- "harms"
-hurt_tidy$term2     <- "hurt"
-hurts_tidy$term2    <- "hurts"
-kick_tidy$term2     <- "kick"
-kicked_tidy$term2   <- "kicked"
-kicks_tidy$term2    <- "kicks"
-punch_tidy$term2    <- "punch"
-punched_tidy$term2  <- "punched"
-punches_tidy$term2  <- "punches"
-push_tidy$term2     <- "push"
-pushed_tidy$term2   <- "pushed"
-pushes_tidy$term2   <- "pushes"
-slap_tidy$term2     <- "slap"
-slapped_tidy$term2  <- "slapped"
-slaps_tidy$term2    <- "slaps"
-choke_tidy$term2    <- "choke"
-choked_tidy$term2   <- "choked"
-chokes_tidy$term2   <- "chokes"
-strangle_tidy$term2 <- "strangle"
-strangled_tidy$term2 <- "strangled"
-strangles_tidy$term2 <- "strangles"
-slam_tidy$term2     <- "slam"
-slammed_tidy$term2  <- "slammed"
-slams_tidy$term2    <- "slams"
-
-# stack into one dataframe
-all <- bind_rows(hit_tidy, hits_tidy, beat_tidy, beats_tidy, grab_tidy, grabbed_tidy, grabs_tidy, harm_tidy, harmed_tidy, harms_tidy, hurt_tidy, hurts_tidy, kick_tidy, kicked_tidy, kicks_tidy, punch_tidy, punched_tidy, punches_tidy, push_tidy, pushed_tidy, pushes_tidy, slap_tidy, slapped_tidy, slaps_tidy, choke_tidy, choked_tidy, chokes_tidy, strangle_tidy, strangled_tidy, strangles_tidy, slam_tidy, slammed_tidy, slams_tidy)
-
-```
-
-```{r make-plots, echo = F, fig.height = 12, fig.width = 14}
-
+```{r plot1, echo = F, fig.height = 10, fig.width = 14}
+#plot physical abuse
 #plot google health trends data individually for each term(s)
-p1 <- ggplot(hit_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
+cat("IPV Physical Abuse")
+ggplot(DataToGraph.phys, aes(x = timestamp, y = value)) +
+  geom_line(color='darkblue') + 
   labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Hit")
-
-p2 <- ggplot(hits_tidy, aes(x = timestamp, y = value)) +
-  geom_line() +  ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Hits")
-
-p3 <- ggplot(beat_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Beat")
-
-p4 <- ggplot(beats_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Beats")
-
-p5 <- ggplot(grab_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Grab")
-
-p6 <- ggplot(grabbed_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Grabbed")
-
-p7 <- ggplot(grabs_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Grabs")
-
-p8 <- ggplot(harm_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Harm")
-
-p9 <- ggplot(harmed_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Harmed")
-
-p10 <- ggplot(harms_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Harms")
-
-p11 <- ggplot(hurt_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Hurt")
-
-p12 <- ggplot(hurts_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Hurts")
-
-p13 <- ggplot(kick_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Kick")
-
-p14 <- ggplot(kicked_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Kicked")
-
-p15 <- ggplot(kicks_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Kicks")
-
-p16 <- ggplot(punch_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Punch")
-
-p17 <- ggplot(punched_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Punched")
-
-p18 <- ggplot(punches_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Punches")
-
-p19 <- ggplot(push_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Push")
-
-p20 <- ggplot(pushed_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Pushed")
-
-p21 <- ggplot(pushes_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Pushes")
-
-p22 <- ggplot(slap_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Slap")
-
-p23 <- ggplot(slapped_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Slapped")
-
-p24 <- ggplot(slaps_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Slaps")
-
-p25 <- ggplot(choke_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Choke")
-
-p26 <- ggplot(choked_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Choked")
-
-p27 <- ggplot(chokes_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Chokes")
-
-p28 <- ggplot(strangle_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Strangle")
-
-p29 <- ggplot(strangled_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Strangled")
-
-p30 <- ggplot(strangles_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Strangles")
-
-p31 <- ggplot(slam_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Slam")
-
-p32 <- ggplot(slammed_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Slammed")
-
-p33 <- ggplot(slams_tidy, aes(x = timestamp, y = value)) +
-  geom_line() + ylim(0,14) +
-  labs(x = "Date", y = "Search outcome") + 
-  ggtitle("Slams")
-
-grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, nrow = 9)
+  facet_wrap(~Query2, ncol=4, nrow=20)#, labeller=labeller(Query=Query2))
 
 #plot by search term(s)
-ggplot(all, aes(x = timestamp, y = value)) +
-  geom_line(aes(col = term2)) +
+ggplot(DataToGraph.phys, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = Query2)) +
   labs(x = "Date", y = "Search outcome") + 
-  ggtitle("National weekly data for 2019, by IPV search term") +
+  ggtitle("\n\n\nNational weekly data for 2019, by IPV physical abuse search term") +
   labs(col="Search term") 
-
 
 ```
 
+```{r plot2, echo = F, fig.height = 60, fig.width = 20}
 
+#plot google health trends data individually for each term(s)
+#Sexual abuse
+cat("IPV Sexual Abuse")
+ggplot(DataToGraph.sex, aes(x = timestamp, y = value)) +
+  geom_line(color='darkblue') + 
+  labs(x = "Date", y = "Search outcome") + 
+  facet_wrap(~Query, ncol=4, nrow=60) +
+  theme(axis.text = element_text(size = 10), 
+        axis.title = element_text(size = 10, face = "bold"),
+        strip.text = element_text(size = 10))
+```
+
+``` {r plot3, echo=F, fig.height = 10, fig.width = 14}
+#plot emotional abuse
+#plot google health trends data individually for each term(s)
+cat("IPV Emotional Abuse")
+ggplot(DataToGraph.emo, aes(x = timestamp, y = value)) +
+  geom_line(color='darkblue') + 
+  labs(x = "Date", y = "Search outcome") + 
+  facet_wrap(~Query2, ncol=4, nrow=20)#, labeller=labeller(Query=Query2))
+
+#plot by search term(s)
+ggplot(DataToGraph.emo, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = Query2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  ggtitle("\n\n\nNational weekly data for 2019, by IPV emotional abuse search term") +
+  labs(col="Search term")
+```
