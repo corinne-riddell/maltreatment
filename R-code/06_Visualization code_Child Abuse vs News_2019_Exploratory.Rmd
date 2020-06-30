@@ -1,0 +1,164 @@
+---
+title: "Explore Google Health Trends child abuse-related search term test runs"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+One sentence summary about objective of this doc -- to explore google health trends for child abuse-related search terms by examining data for 2019 (prior to study period).
+
+Weekly and daily searches at the national and state levels for 2019:
+
+Terms include variations of: "Child abuse"; "Child abuse news/story/CNN/Fox News/etc."
+
+```{r load-libraries, warning=F, message=F, echo=F}
+# install.packages("geofacet") #install once if you don't already have the package
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(stringr)
+```
+
+```{r import-data, echo=F, message=F}
+
+#read in data
+#create term-specific dataframes
+
+## DAILY, NATIONAL-LEVEL QUERIES
+#child abuse - daily, national
+abuse.daily <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Abuse Searches vs In the News/Daily National Searches for Child Abuse/states/US/US-Child-Abuse.csv")
+
+#child abuse in news - daily, national
+#child abuse news + child abuse New York Times + child abuse CNN + child abuse story + child abuse Huffington Post + child abuse Fox News + child abuse NBC + child abuse Washington Post + child abuse MSN news + child abuse ABC news
+abusenews.daily <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Abuse Searches vs In the News/RERUN Daily National Searches for Child Abuse In News/states/US/US-child-abuse-in-news-2.csv")
+
+
+## WEEKLY, STATE-LEVEL QUERIES
+#child abuse - weekly, state-level
+#Set filepath for highest level query folder
+Myfilepath.abuse <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Abuse Searches vs In the News/Weekly State Child Abuse Searches/"
+
+#Find all files in the subfolders
+filenames.abuse <- list.files(Myfilepath.abuse, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.abuse <- filenames.abuse %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.abuse <- select(AllQueries.abuse,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+state_list <- c(state.abb, "DC")
+state2 <- sort(rep(state_list, 52))
+
+DataToGraph.abuse <- cbind(DataToGraph.abuse, state2=state2)
+
+
+#child abuse in news - weekly, state-level
+#Set filepath for highest level query folder
+Myfilepath.news <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Child Abuse Searches vs In the News/RERUN Weekly State Child Abuse In News/"
+
+#Find all files in the subfolders
+filenames.news <- list.files(Myfilepath.news, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.news <- filenames.news %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.news <- select(AllQueries.news,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+state_list <- c(state.abb, "DC")
+state2 <- sort(rep(state_list, 52))
+
+DataToGraph.news <- cbind(DataToGraph.news, state2=state2)
+
+```
+
+```{r tidy-the-data, echo=F}
+# tidy data for daily, national queries
+abusedaily_tidy <- `abuse.daily` %>% arrange(timestamp) %>% mutate(term2 = "Child abuse")
+abusenewsdaily_tidy <- `abusenews.daily` %>% arrange(timestamp) %>% mutate(term2 = "Child abuse [news]")
+
+# stack into one dataframe
+all.daily <- bind_rows(abusedaily_tidy, abusenewsdaily_tidy)
+
+```
+
+
+```{r plots1, echo = F, fig.height = 10, fig.width = 14}
+#plot daily, national-level data
+cat("Child abuse vs. child abuse in the news: daily, national queries")
+ggplot(all.daily, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = term2)) + 
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="Search term") +
+  scale_x_datetime(date_breaks = ("1 month")) +
+  ggtitle("\n\nNational daily data for 2019 - 'Child abuse' vs. 'Child abuse [news]' searches")
+
+```
+
+
+Note: Child abuse [news] query included: child abuse news + child abuse New York Times + child abuse CNN + child abuse story + child abuse Huffington Post + child abuse Fox News + child abuse NBC + child abuse Washington Post + child abuse MSN news + child abuse ABC news
+
+
+```{r plots2, echo = F, fig.height = 10, fig.width = 14}
+#plot weekly, state-level data
+cat("Child abuse vs. child abuse in the news: weekly, state-level queries")
+# child abuse
+ggplot(DataToGraph.abuse, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome - 'Child abuse'") + 
+  labs(col="State") +
+  ggtitle("\n\nSearch Term 'Child Abuse', by state") +
+  guides(fill=guide_legend(title="State"))
+
+#child abuse news
+ggplot(DataToGraph.news, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome - 'Child abuse [news]'") + 
+  labs(col="State") +
+  ggtitle("\n\nSearch Term 'Child abuse [news]', by state")
+
+```
+Note: Child abuse [news] query included: child abuse news + child abuse New York Times + child abuse CNN + child abuse story + child abuse Huffington Post + child abuse Fox News + child abuse NBC + child abuse Washington Post + child abuse MSN news + child abuse ABC news
+
+
+
+```{r plots3, echo = F, fig.height = 14, fig.width = 22}
+#plot weekly, state-level data - geofacet plots
+# child abuse
+ggplot(DataToGraph.abuse, aes(x = timestamp, y = value)) + 
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome - 'Child abuse'") + 
+  labs(col="State") +
+  #theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) +
+  ggtitle("\n\nSearch Term 'Child Abuse', by state - Geofacet plot") +
+  theme(plot.title = element_text(size=18)) + 
+  facet_geo(~ state2)
+
+# child abuse news
+ggplot(DataToGraph.news, aes(x = timestamp, y = value)) + 
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome - 'Child abuse [news]'") + 
+  labs(col="State") +
+  #theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) +
+  ggtitle("\n\nSearch Term 'Child abuse [news]', by state - Geofacet plot") +
+  theme(plot.title = element_text(size=18)) + 
+  facet_geo(~ state2)
+
+```
+Note: Child abuse [news] query included: child abuse news + child abuse New York Times + child abuse CNN + child abuse story + child abuse Huffington Post + child abuse Fox News + child abuse NBC + child abuse Washington Post + child abuse MSN news + child abuse ABC news

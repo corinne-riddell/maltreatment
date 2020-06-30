@@ -17,7 +17,7 @@ Perpetrators included: husband, boyfriend, ex-boyfriend, ex-husband, ex boyfrien
 ** Note the different y-axis scale for 'abuse/domestic violence hotline' searches in first set of plots.
 
 ```{r load-libraries, warning=F, message=F, echo=F}
-# install.packages("geofacet") #install once if you don't already have the package
+#install.packages("geofacet") #install once if you don't already have the package
 library(directlabels)
 library(geofacet) 
 library(tidyverse)
@@ -29,25 +29,27 @@ library(gridExtra)
 
 #read in data
 #create term-specific dataframes
-find.abuse.hotline <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-abuse-hotline.csv")
+find.abuse.hotline <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/May 28 - June 3 Exploratory Searches/IPV/AskingForHelpQueries/US-IPV-abuse-hotline.csv")
 
-abuses.me <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-abuses-me.csv")
+abuses.me <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/May 28 - June 3 Exploratory Searches/IPV/AskingForHelpQueries/US-IPV-abuses-me.csv")
 
-codeword <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-codewords.csv")
+codeword <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/May 28 - June 3 Exploratory Searches/IPV/AskingForHelpQueries/US-IPV-codewords.csv")
 
-unsafe <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-feel-unsafe.csv")
+unsafe <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/May 28 - June 3 Exploratory Searches/IPV/AskingForHelpQueries/US-IPV-feel-unsafe.csv")
 
-hotline <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-find-hotline.csv")
+hotline <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/May 28 - June 3 Exploratory Searches/IPV/AskingForHelpQueries/US-IPV-find-hotline.csv")
 
-shelter <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-find-shelter.csv")
+shelter <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/May 28 - June 3 Exploratory Searches/IPV/AskingForHelpQueries/US-IPV-find-shelter.csv")
 
-partner.calm <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-how-to-calm.csv")
+partner.calm <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/May 28 - June 3 Exploratory Searches/IPV/AskingForHelpQueries/US-IPV-how-to-calm.csv")
 
-save.money <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-how-to-secretly-save.csv")
+save.money <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/May 28 - June 3 Exploratory Searches/IPV/AskingForHelpQueries/US-IPV-how-to-secretly-save.csv")
 
-leave <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-leave-relationship.csv")
+leave <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/May 28 - June 3 Exploratory Searches/IPV/AskingForHelpQueries/US-IPV-leave-relationship.csv")
 
-protect.kids <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/IPV/AskingForHelpQueries/US-IPV-protect-kids.csv")
+protect.kids <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/May 28 - June 3 Exploratory Searches/IPV/AskingForHelpQueries/US-IPV-protect-kids.csv")
+
+dailyhotline <- read_csv("/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/Daily Abuse Hotline Searches at National Level/Abuse-Hotline/states/US/US-IPV-daily-abuse-hotline.csv")
 
 ```
 
@@ -63,10 +65,15 @@ money_tidy <- `save.money` %>% arrange(timestamp) %>% mutate(term2 = "how to sec
 leave_tidy <- `leave` %>% arrange(timestamp) %>% mutate(term2 = "how to leave abusive/dangerous relationship") %>% mutate(term3 = "relationship")
 protect_kids_tidy <- `protect.kids` %>% arrange(timestamp) %>% mutate(term2 = "protect kids from domestic violence") %>% mutate(term3 = "protect")
 
+#weekly hotline query
+dailyhotline_tidy <- `dailyhotline` %>% arrange(timestamp) %>% mutate(term2 = "abuse/domestic violence hotline") %>% mutate(term3 = "hotline")
+#dailyhotline_tidy$timestamp
 
-# stack into one dataframe
+
+# stack all weekly queries into one dataframe
 all <- bind_rows(find_hotline_tidy, abuseme_tidy, codeword_tidy, unsafe_tidy, hotline_tidy, shelter_tidy, calm_tidy, money_tidy, leave_tidy, protect_kids_tidy)
 
+# exclude hotline_tidy because on such different scale
 all.2 <- bind_rows(find_hotline_tidy, abuseme_tidy, codeword_tidy, unsafe_tidy, shelter_tidy, calm_tidy, money_tidy, leave_tidy, protect_kids_tidy)
 
 ```
@@ -144,8 +151,15 @@ ggplot(all.2, aes(x = timestamp, y = value)) +
   geom_dl(aes(label = term3), method = list(dl.combine("first.points"), cex = 0.8)) + 
   coord_cartesian(clip = 'off')
 
-
-
 ```
 
+Daily searches at the national level for 2019 for "abuse/domestic violence hotline/help/emergency line/helpline/support line" - to examine for expected spikes on days when people drink more (e.g., New Years) as a data validity check
 
+```{r make-plots2, echo = F, fig.height = 8, fig.width = 12}
+
+#plot google health trends data individually for each term
+ggplot(dailyhotline_tidy, aes(x = timestamp, y = value)) +
+  geom_line() +
+  labs(x = "Date", y = "Search outcome") + 
+  scale_x_datetime(date_breaks = ("1 month")) +
+  ggtitle("\n\nNational daily data for 2019 - 'abuse/domestic violence hotline' searches") 

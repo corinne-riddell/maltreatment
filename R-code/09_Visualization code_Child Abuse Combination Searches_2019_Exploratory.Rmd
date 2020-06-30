@@ -1,0 +1,299 @@
+---
+title: "Explore Google Health Trends child abuse search term test runs -- combining terms across maltreatment domains"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+One sentence summary about objective of this doc -- to explore google health trends for child abuse-related search terms by examining data for 2019 (prior to study period); specifically, examine combinations of search terms across different maltreatment domains.
+
+Weekly searches at the national and state levels for 2019:
+
+Terms included: 
+A) Victim searches: [perpetrator] hit me, hurt me, hurts me, beat me, afraid of, scared of, hate me, hates me, passed out, is high, is drunk, touch my, have sex with me, rape me, raped me 
+B) Help/suspecting abuse searches: signs of child abuse, signs of child neglect, signs of child maltreatment, reporting child abuse, child abuse help, child abuse hotline, how to report child abuse
+
+Perpetrators included: mom, dad, mother, father
+
+
+```{r load-libraries, warning=F, message=F, echo=F}
+# insteall and load necessary packages
+# install.packages("geofacet") #install once if you don't already have the package
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(stringr)
+library(directlabels)
+```
+
+```{r import-data, echo=F, message=F}
+
+#read in data
+
+## 1. CHILD ABUSE COMINATION QUERY - victim + suspecting terms, mom/dad as perp
+#Set filepath for highest level query folder
+Myfilepath.comb1 <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/UPDATED Child Abuse Combo Queries/mom-dad-phys-emo-negl-sex-suspect/"
+
+#Find all files in the subfolders
+filenames.comb1 <- list.files(Myfilepath.comb1, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.comb1 <- filenames.comb1 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.comb1 <- select(AllQueries.comb1,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+state_list <- c(state.abb, "DC")
+state2 <- sort(rep(state_list, 52))
+US <- rep("US", 52)
+state3 <- c(US, state2)
+
+DataToGraph.comb1 <- cbind(DataToGraph.comb1, state2=state3)
+
+## 2. CHILD ABUSE COMINATION QUERY - victim terms only, mom/dad as perp
+#Set filepath for highest level query folder
+Myfilepath.comb2 <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/UPDATED Child Abuse Combo Queries/mom-dad-phys-emo-negl-sex/"
+
+#Find all files in the subfolders
+filenames.comb2 <- list.files(Myfilepath.comb2, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.comb2 <- filenames.comb2 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.comb2 <- select(AllQueries.comb2,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+state_list <- c(state.abb, "DC")
+state2 <- sort(rep(state_list, 52))
+US <- rep("US", 52)
+state3 <- c(US, state2)
+
+DataToGraph.comb2 <- cbind(DataToGraph.comb2, state2=state3)
+
+## 3. CHILD ABUSE COMINATION QUERY - victim terms only, mom/dad/mother/father as perp 
+# NOTE: For this one, we accidentally included "mother/father hate" instead of "mother/father hate me"
+#Set filepath for highest level query folder
+Myfilepath.comb3 <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/UPDATED Child Abuse Combo Queries/mom-mother-dad-father-phys-emo-negl-sex/"
+
+#Find all files in the subfolders
+filenames.comb3 <- list.files(Myfilepath.comb3, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.comb3 <- filenames.comb3 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.comb3 <- select(AllQueries.comb3,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+state_list <- c(state.abb, "DC")
+state2 <- sort(rep(state_list, 52))
+US <- rep("US", 52)
+state3 <- c(US, state2)
+
+DataToGraph.comb3 <- cbind(DataToGraph.comb3, state2=state3)
+
+
+
+## 4. CHILD ABUSE COMBINATION QUERY - victim + suspecting terms, mom/mother as perp
+# NOTE: we only ran these for 7 states that were still only returning 0s - so not plotting geofacet plot
+#Set filepath for highest level query folder
+Myfilepath.comb4 <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/NEW Child Abuse Combo Queries/mom-mother-all-abuse-plus-suspect/"
+
+#Find all files in the subfolders
+filenames.comb4 <- list.files(Myfilepath.comb4, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.comb4 <- filenames.comb4 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.comb4 <- select(AllQueries.comb4,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+#state_list <- c(state.abb, "DC")
+#state2 <- sort(rep(state_list, 52))
+#US <- rep("US", 52)
+#state3 <- c(US, state2)
+
+#DataToGraph.comb4 <- cbind(DataToGraph.comb4, state2=state3)
+
+
+## 5. CHILD ABUSE COMBINATION QUERY - victim + suspecting terms, dad/father as perp
+# NOTE: we only ran these for 7 states that were still only returning 0s - so not plotting geofacet plot
+#Set filepath for highest level query folder
+Myfilepath.comb5 <- "/Users/krisztafarkas/Box Sync/Google-search-data/2019ExploratoryData/June 4-11 Exploratory Searches/NEW Child Abuse Combo Queries/dad-father-all-abuse-plus-suspect/"
+
+#Find all files in the subfolders
+filenames.comb5 <- list.files(Myfilepath.comb5, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Read in all files and add a new column with the filepath
+#Then parse the filepath into individual columns for each subsubfolder
+AllQueries.comb5 <- filenames.comb5 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Users","Name","Box","Project","Exploratory","DateRange","Abuse-Cat","Query","Extra","StatesFolder","State","Filename"), "/")
+
+#Create new dataframe with only the columns we're interested in and then group by state and arrange by time
+DataToGraph.comb5 <- select(AllQueries.comb5,-"Blank",-"Users",-"Name",-"Box",-"Project",-"Exploratory",-"DateRange", -"Extra",-"StatesFolder",-"Filename", -"query_time", -"sample") %>%
+  group_by(State) %>%
+  arrange(timestamp, .by_group=TRUE)
+
+#add on a state abbreviation variable that R will recognize for the geofacet plot
+#state_list <- c(state.abb, "DC")
+#state2 <- sort(rep(state_list, 52))
+#US <- rep("US", 52)
+#state3 <- c(US, state2)
+
+#DataToGraph.comb5 <- cbind(DataToGraph.comb5, state2=state3)
+
+
+#stack into one dataframe:
+#only the first three queries for which we have US and all states + DC
+all.combos <- bind_rows(DataToGraph.comb1, DataToGraph.comb2, DataToGraph.comb3)
+
+```
+
+
+```{r plots1, echo = F, fig.height = 10, fig.width = 14}
+#plot national-level data - comparing across child abuse combo queries
+cat("Child abuse domain combination queries, national level")
+ggplot(all.combos, aes(x = timestamp, y = value)) +
+  geom_line(data = all.combos %>% filter(state2 == "US"), aes(col = Query)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="Search term") +
+  ggtitle("\n\nNational weekly data for 2019 - comparison of domain combination queries") 
+```
+
+
+
+```{r plots2, echo = F, fig.height = 14, fig.width = 22}
+#plot weekly, state-level data - geofacet plots
+## Child abuse domain combinations
+## Combination 1
+cat("Child abuse domain combination queries: Geofacet plots")
+cat("Victim + suspecting terms: mom/dad hit me, hurt me, beat me, hate me, hates me, passed out, is high, is drunk, touch my, have sex with me, rape me; afraid of, scared of mom/dad; signs of child abuse, signs of child neglect, signs of child maltreatment, reporting child abuse")
+ggplot(DataToGraph.comb1 %>% filter(state2 != "US"), aes(x = timestamp, y = value)) +
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild maltreatment, by state w/ total US (black line)") +
+  theme(plot.title = element_text(size=18)) + 
+  facet_geo(~ state2) + 
+  geom_line(data = DataToGraph.comb1 %>% filter(state2 == "US"), linetype = "solid")
+
+
+##Combination 2
+cat("Victim terms only, with mom/dad as perpetrator: mom/dad hit me, hurt me, hurts me, beat me, hate me, hates me, passed out, is high, is drunk, touch my, have sex with me, rape me, raped me; afraid of, scared of mom/dad")
+ggplot(DataToGraph.comb2 %>% filter(state2 != "US"), aes(x = timestamp, y = value)) +
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild maltreatment, by state w/ total US (black line)") +
+  theme(plot.title = element_text(size=18)) + 
+  facet_geo(~ state2) + 
+  geom_line(data = DataToGraph.comb2 %>% filter(state2 == "US"), linetype = "solid")
+
+
+##Combination 3
+cat("Victim terms only, with mom/dad/mother/father as perpetrator: mom/dad hit me, hurt me, hate me, passed out, is high, touch my, have sex with me; afraid of mom/dad")
+ggplot(DataToGraph.comb3 %>% filter(state2 != "US"), aes(x = timestamp, y = value)) +
+  geom_line(aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild maltreatment, by state w/ total US (black line)") +
+  theme(plot.title = element_text(size=18)) + 
+  facet_geo(~ state2) + 
+  geom_line(data = DataToGraph.comb3 %>% filter(state2 == "US"), linetype = "solid")
+
+```
+
+
+
+```{r plots3, echo = F, fig.height = 10, fig.width = 14}
+#plot weekly, state-level data
+cat("Child abuse domain combination queries: state-level plots")
+
+##Combination 1
+cat("Victim + suspecting terms: mom/dad hit me, hurt me, beat me, hate me, hates me, passed out, is high, is drunk, touch my, have sex with me, rape me; afraid of, scared of mom/dad; signs of child abuse, signs of child neglect, signs of child maltreatment, reporting child abuse")
+ggplot(DataToGraph.comb1, aes(x = timestamp, y = value)) +
+  geom_line(data = DataToGraph.comb1 %>% filter(state2 != "US"), aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild maltreatment, by state w/ total US (black line)") + 
+  geom_line(data = DataToGraph.comb1 %>% filter(state2 == "US"), linetype = "solid")  +
+  geom_dl(aes(label = state2), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+
+## Combination 2
+cat("Victim terms only, with mom/dad as perpetrator: mom/dad hit me, hurt me, hurts me, beat me, hate me, hates me, passed out, is high, is drunk, touch my, have sex with me, rape me, raped me; afraid of, scared of mom/dad")
+ggplot(DataToGraph.comb2, aes(x = timestamp, y = value)) +
+  geom_line(data = DataToGraph.comb2 %>% filter(state2 != "US"), aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild maltreatment, by state w/ total US (black line)") + 
+  geom_line(data = DataToGraph.comb2 %>% filter(state2 == "US"), linetype = "solid")  +
+  geom_dl(aes(label = state2), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+
+## Combination 3
+cat("Victim terms only, with mom/dad/mother/father as perpetrator: mom/dad hit me, hurt me, hate me, passed out, is high, touch my, have sex with me; afraid of mom/dad")
+ggplot(DataToGraph.comb3, aes(x = timestamp, y = value)) +
+  geom_line(data = DataToGraph.comb3 %>% filter(state2 != "US"), aes(col = state2)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild maltreatment, by state w/ total US (black line)") + 
+  geom_line(data = DataToGraph.comb3 %>% filter(state2 == "US"), linetype = "solid")  +
+  geom_dl(aes(label = state2), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+
+## Combination 4
+cat("Victim + suspecting terms: mom/mother hit me, hurt me, beat me, hate me, hates me, passed out, is high, is drunk, touch my, have sex with me, rape me; afraid of, scared of mom/mother; signs of child abuse, signs of child neglect, signs of child maltreatment, child abuse help, child abuse hotline")
+ggplot(DataToGraph.comb4, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = State)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild maltreatment, mom/mother perpetrator, by state") + 
+  #geom_line(data = DataToGraph.comb1 %>% filter(state2 == "US"), linetype = "solid")  +
+  geom_dl(aes(label = State), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+
+## Combination 5
+cat("Victim + suspecting terms: dad/father hit me, hurt me, beat me, hate me, hates me, passed out, is high, is drunk, touch my, have sex with me, rape me; afraid of, scared of dad/father; signs of child neglect, how to report child abuse, reporting child abuse")
+ggplot(DataToGraph.comb5, aes(x = timestamp, y = value)) +
+  geom_line(aes(col = State)) +
+  labs(x = "Date", y = "Search outcome") + 
+  labs(col="State") +
+  ggtitle("\n\nChild maltreatment, dad/father perpetrator, by state") + 
+  #geom_line(data = DataToGraph.comb1 %>% filter(state2 == "US"), linetype = "solid")  +
+  geom_dl(aes(label = State), method = list(dl.combine("first.points", "last.points"), cex = 0.8)) 
+
+```
+
+
+
