@@ -1,3 +1,7 @@
+#
+#
+# This file is all of the tests we did to individually evaluate combinations of search terms when we assumed a max of 30 terms per query
+#
 # 1 INITIALIZATION
 
 # import SearchSampler script from Pew Code
@@ -13,41 +17,10 @@ output_path = 'C:\\Users\\Krist\\Box Sync\\Google-search-data\\2019ExploratoryDa
 # if doing single sample pull, this number doesn't seem to do anything
 num_samples = 1
 
-# list of all state codes so search_sampler will be able to run script on all states. Some options include
-
-# Some options include:
-    # states = ['US-AK', 'US-AL', 'US-AR','US-AZ']
-    # states = ['US-CA', 'US-CO', 'US-CT', 'US-DC']
-    # states = ['US-DE', 'US-FL', 'US-GA', 'US-HI']
-    # states = ['US-IA', 'US-ID', 'US-IL', 'US-IN']
-    # states = ['US-KS', 'US-KY', 'US-LA', 'US-MA']
-    # states = ['US-MD', 'US-ME', 'US-MI', 'US-MN']
-    # states = ['US-MO', 'US-MS', 'US-MT', 'US-NC']
-    # states = ['US-ND', 'US-NE', 'US-NH', 'US-NJ']
-    # states = ['US-NM', 'US-NV', 'US-NY', 'US-OH']
-    # states = ['US-OK', 'US-OR', 'US-PA', 'US-RI']
-    # states = ['US-SC', 'US-SD', 'US-TN', 'US-TX']
-    # states = ['US-UT', 'US-VA', 'US-VT', 'US-WA']
-    # states = ['US-WI', 'US-WV', 'US-WY']
-
-    # Can pull national level saerches with :  states = ['US']
-'''states = ['US-AK', 'US-AL', 'US-AR','US-AZ','US-CA', 'US-CO', 'US-CT', 'US-DC','US-DE', 'US-FL', 'US-GA', 'US-HI',
-'US-IA', 'US-ID', 'US-IL', 'US-IN','US-KS', 'US-KY', 'US-LA', 'US-MA','US-MD', 'US-ME', 'US-MI', 'US-MN','US-MO', 'US-MS', 'US-MT', 'US-NC',
-'US-ND', 'US-NE', 'US-NH', 'US-NJ','US-NM', 'US-NV', 'US-NY', 'US-OH','US-OK', 'US-OR', 'US-PA', 'US-RI','US-SC', 'US-SD', 'US-TN', 'US-TX',
-'US-UT', 'US-VA', 'US-VT', 'US-WA','US-WI', 'US-WV', 'US-WY']'''
 
 # ENTER SEARCH REGION HERE
-#states = ['US-VT', 'US-NH','US-ME','US-ID','US-MT','US-ND','US-WY','US-SD','US-RI','US-NE','US-WV','US-DE','US-NM','US-DC','US-HI','US-AK']
-states = ['US']
-
-#IPV States we want to check: ['US-VT', 'US-NH','US-ME','US-ID','US-MT','US-ND','US-WY','US-SD','US-RI','US-NE','US-WV','US-DE','US-NM','US-DC','US-HI','US-AK']
-
-#states = ['US-VT', 'US-NH','US-ME','US-ID', 'US-MT','US-ND','US-WY','US-SD','US-RI','US-NE','US-WV','US-DE','US-NM','US-DC','US-HI','US-AK']
-
-#states = ['US-DC','US-ME', 'US-NE', 'US-NM', 'US-RI', 'US-WV']
-
-# list of all DMA codes
-'''dmas = []'''
+states = ['US-AK', 'US-AL', 'US-AR','US-AZ','US-CA', 'US-CO', 'US-CT', 'US-DC','US-DE', 'US-FL', 'US-GA', 'US-HI', 'US-IA', 'US-ID', 'US-IL', 'US-IN','US-KS', 'US-KY', 'US-LA', 'US-MA','US-MD', 'US-ME', 'US-MI', 'US-MN','US-MO', 'US-MS', 'US-MT', 'US-NC', 'US-ND', 'US-NE', 'US-NH', 'US-NJ','US-NM', 'US-NV', 'US-NY', 'US-OH','US-OK', 'US-OR', 'US-PA', 'US-RI','US-SC', 'US-SD', 'US-TN', 'US-TX', 'US-UT', 'US-VA', 'US-VT', 'US-WA','US-WI', 'US-WV', 'US-WY']
+#states = ['US']
 
 
 # 2. FUNCTIONS
@@ -77,7 +50,7 @@ def query(regionCodes, filePath):
         # search params
         params = {
 
-            # Searches previously executed:
+            # Searches we tried:
 
             # COVID Related Searches
                 # Ran on 4/27 - 4/29  : ['covid', 'coronavirus']
@@ -726,49 +699,51 @@ def query(regionCodes, filePath):
                  #All pers w quotes and suspecting --- 'search_term': ["mom hit me + dad hit me + mother hit me + father hit me + mom hurt me + dad hurt me + mother hurt me + father hurt me + 'afraid of mom' + 'afraid of dad' + 'afraid of mother' + 'afraid of father' + mom hate me + dad hate me + mother hate me + father hate me + mom is high + dad is high + mother is high + father is high + mom passed out + dad passed out + mother passed out + father passed out + mom touch my + dad touch my + mother touch my + father touch my + child abuse hotline + signs of child abuse"],
 
             #Final Child Abuse Combo Query (plus suspecting terms)
-            #'search_term': ["mom hit me + dad hit me + mother hit me + father hit me + mom hurt me + dad hurt me + mother hurt me + father hurt me + afraid of mom + afraid of dad + afraid of mother + afraid of father + mom hate me + dad hate me + mother hate me + father hate me + mom is high + dad is high + mother is high + father is high + mom passed out + dad passed out + mother passed out + father passed out + mom touch my + dad touch my + mother touch my + father touch my + child abuse hotline + signs of child abuse"],
-            #'search_term': ['child abuse hotline'],
-            #'search_term': ['signs of child abuse'],
+                #'search_term': ["mom hit me + dad hit me + mother hit me + father hit me + mom hurt me + dad hurt me + mother hurt me + father hurt me + afraid of mom + afraid of dad + afraid of mother + afraid of father + mom hate me + dad hate me + mother hate me + father hate me + mom is high + dad is high + mother is high + father is high + mom passed out + dad passed out + mother passed out + father passed out + mom touch my + dad touch my + mother touch my + father touch my + child abuse hotline + signs of child abuse"],
+                #'search_term': ['child abuse hotline'],
+                #'search_term': ['signs of child abuse'],
 
             #IPV Combo Queries
+
                 #All perps spouse and partner
-            #'search_term': ["husband hit me + wife hit me + boyfriend hit me + girlfriend hit me + partner hit me + spouse hit me + husband hurt me + wife hurt me + boyfriend hurt me + girlfriend hurt me + partner hurt me + spouse hurt me + husband hates me + wife hates me + boyfriend hates me + girlfriend hates me + partner hates me + spouse hates me + husband hate me + wife hate me + boyfriend hate me + girlfriend hate me + partner hate me + spouse hate me + husband raped me + wife raped me + boyfriend raped me + girlfriend raped me + partner raped me + spouse raped me"],
+                #'search_term': ["husband hit me + wife hit me + boyfriend hit me + girlfriend hit me + partner hit me + spouse hit me + husband hurt me + wife hurt me + boyfriend hurt me + girlfriend hurt me + partner hurt me + spouse hurt me + husband hates me + wife hates me + boyfriend hates me + girlfriend hates me + partner hates me + spouse hates me + husband hate me + wife hate me + boyfriend hate me + girlfriend hate me + partner hate me + spouse hate me + husband raped me + wife raped me + boyfriend raped me + girlfriend raped me + partner raped me + spouse raped me"],
+
                 # All perps spouse, no partner but + afraid of
-            #'search_term': ["husband hit me + wife hit me + boyfriend hit me + girlfriend hit me + spouse hit me + husband hurt me + wife hurt me + boyfriend hurt me + girlfriend hurt me + spouse hurt me + husband hates me + wife hates me + boyfriend hates me + girlfriend hates me + spouse hates me + husband hate me + wife hate me + boyfriend hate me + girlfriend hate me + spouse hate me + afraid of husband + afraid of wife + afraid of boyfriend + afraid of girlfriend + afraid of spouse + husband raped me + wife raped me + boyfriend raped me + girlfriend raped me + spouse raped me"],
-             #'search_term': ["domestic violence hotline + domestic abuse hotline"],
-            #'search_term': ["domestic violence hotline"],
-            #'search_term': ["domestic abuse hotline"],
+                #'search_term': ["husband hit me + wife hit me + boyfriend hit me + girlfriend hit me + spouse hit me + husband hurt me + wife hurt me + boyfriend hurt me + girlfriend hurt me + spouse hurt me + husband hates me + wife hates me + boyfriend hates me + girlfriend hates me + spouse hates me + husband hate me + wife hate me + boyfriend hate me + girlfriend hate me + spouse hate me + afraid of husband + afraid of wife + afraid of boyfriend + afraid of girlfriend + afraid of spouse + husband raped me + wife raped me + boyfriend raped me + girlfriend raped me + spouse raped me"],
+                #'search_term': ["domestic violence hotline + domestic abuse hotline"],
+                #'search_term': ["domestic violence hotline"],
+                #'search_term': ["domestic abuse hotline"],
 
-            # IPV-all-perps-control-hotlines
-             #'search_term': ["husband hit me + wife hit me + boyfriend hit me + girlfriend hit me + husband hurt me + wife hurt me + boyfriend hurt me + girlfriend hurt me + husband control me + wife control me + boyfriend control me + girlfriend control me + husband hates me + wife hates me + boyfriend hates me + girlfriend hates me + husband hate me + wife hate me + boyfriend hate me + girlfriend hate me + afraid of husband + afraid of wife + afraid of boyfriend + afraid of girlfriend + husband raped me + wife raped me + boyfriend raped me + girlfriend raped me + domestic violence hotline + domestic abuse hotline"],
+                # IPV-all-perps-control + hotlines
+                #'search_term': ["husband hit me + wife hit me + boyfriend hit me + girlfriend hit me + husband hurt me + wife hurt me + boyfriend hurt me + girlfriend hurt me + husband control me + wife control me + boyfriend control me + girlfriend control me + husband hates me + wife hates me + boyfriend hates me + girlfriend hates me + husband hate me + wife hate me + boyfriend hate me + girlfriend hate me + afraid of husband + afraid of wife + afraid of boyfriend + afraid of girlfriend + husband raped me + wife raped me + boyfriend raped me + girlfriend raped me + domestic violence hotline + domestic abuse hotline"],
 
-            #IPV-all-perps-control-I-m-afraid-hotlines
-             'search_term': ["husband hit me + wife hit me + boyfriend hit me + girlfriend hit me + husband hurt me + wife hurt me + boyfriend hurt me + girlfriend hurt me + husband control me + wife control me + boyfriend control me + girlfriend control me + husband hates me + wife hates me + boyfriend hates me + girlfriend hates me + husband hate me + wife hate me + boyfriend hate me + girlfriend hate me + i\'m afraid of husband + i\'m afraid of wife + i\'m afraid of boyfriend + i\'m afraid of girlfriend + husband raped me + wife raped me + boyfriend raped me + girlfriend raped me + domestic violence hotline + domestic abuse hotline"],
+                #IPV-all-perps-control-I-m-afraid-hotlines
+                #'search_term': ["husband hit me + wife hit me + boyfriend hit me + girlfriend hit me + husband hurt me + wife hurt me + boyfriend hurt me + girlfriend hurt me + husband control me + wife control me + boyfriend control me + girlfriend control me + husband hates me + wife hates me + boyfriend hates me + girlfriend hates me + husband hate me + wife hate me + boyfriend hate me + girlfriend hate me + i\'m afraid of husband + i\'m afraid of wife + i\'m afraid of boyfriend + i\'m afraid of girlfriend + husband raped me + wife raped me + boyfriend raped me + girlfriend raped me + domestic violence hotline + domestic abuse hotline"],
 
-            # IPV-male-perps-hotlines
-            #MISTAKE'search_term': ["husband hit me + boyfriend  hit me + husband hurt me + boyfriend  hurt me + husband hurts me + boyfriend  hurts me + husband control me + boyfriend  control me + husband hates me + boyfriend  hates me + husband hate me + boyfriend  hate me + husband afraid of me + boyfriend  afraid of me + husband raped me + boyfriend  raped me + husband rapes me + boyfriend  rapes me + husband forced sex me + boyfriend  forced sex me + husband forces sex me + boyfriend  forces sex me + husband beat me + boyfriend  beat me + husband hits me + boyfriend  hits me + husband controlling me + boyfriend  controlling me + domestic violence hotline + domestic abuse hotline"],
-            #'search_term': ["husband hit me + boyfriend hit me + husband hurt me + boyfriend hurt me + husband hurts me + boyfriend hurts me + husband control me + boyfriend control me + husband hates me + boyfriend hates me + husband hate me + boyfriend hate me + afraid of husband + afraid of boyfriend  + husband raped me + boyfriend raped me + husband rapes me + boyfriend rapes me + husband forced sex me + boyfriend forced sex me + husband forces sex me + boyfriend forces sex me + husband beat me + boyfriend beat me + husband hits me + boyfriend hits me + husband controlling me + boyfriend controlling me + domestic violence hotline + domestic abuse hotline"],
+            # IPV-male-only-perps + hotlines
+                 #MISTAKE'search_term': ["husband hit me + boyfriend  hit me + husband hurt me + boyfriend  hurt me + husband hurts me + boyfriend  hurts me + husband control me + boyfriend  control me + husband hates me + boyfriend  hates me + husband hate me + boyfriend  hate me + husband afraid of me + boyfriend  afraid of me + husband raped me + boyfriend  raped me + husband rapes me + boyfriend  rapes me + husband forced sex me + boyfriend  forced sex me + husband forces sex me + boyfriend  forces sex me + husband beat me + boyfriend  beat me + husband hits me + boyfriend  hits me + husband controlling me + boyfriend  controlling me + domestic violence hotline + domestic abuse hotline"],
+                 #'search_term': ["husband hit me + boyfriend hit me + husband hurt me + boyfriend hurt me + husband hurts me + boyfriend hurts me + husband control me + boyfriend control me + husband hates me + boyfriend hates me + husband hate me + boyfriend hate me + afraid of husband + afraid of boyfriend  + husband raped me + boyfriend raped me + husband rapes me + boyfriend rapes me + husband forced sex me + boyfriend forced sex me + husband forces sex me + boyfriend forces sex me + husband beat me + boyfriend beat me + husband hits me + boyfriend hits me + husband controlling me + boyfriend controlling me + domestic violence hotline + domestic abuse hotline"],
 
-            #Validity Checks
-            #'search_term': ["sneakers"],
-            #'search_term': ["tennis shoes"],
-            #'search_term': ["peach pit"],
-            #'search_term': ["peach kernel"],
-            #'search_term': ["peach seed"],
-            #'search_term': ["Los Angeles Lakers"],
-            #'search_term': ["Golden State Warriors"],
-            #'search_term': ["Boston Celtics"],
-            #'search_term': ["Philadelphia 76ers"],
-            #'search_term': ["Houston Rockets"],
-            #'search_term': ["Miami Heat"],
-            #'search_term': ["Milwaukee Bucks"],
-            #'search_term': ["Chicago Bulls"],
-            #'search_term': ["faucet"],
-            #'search_term': ["spigot"],
-             #'search_term': ["pop drink"],
-             #'search_term': ["soda drink"],
-             #'search_term': ["coke drink"],
-            # 'search_term': [],
+            #Validity Checks for expected state variations
+                #'search_term': ["sneakers"],
+                #'search_term': ["tennis shoes"],
+                #'search_term': ["peach pit"],
+                #'search_term': ["peach kernel"],
+                #'search_term': ["peach seed"],
+                #'search_term': ["Los Angeles Lakers"],
+                #'search_term': ["Golden State Warriors"],
+                #'search_term': ["Boston Celtics"],
+                #'search_term': ["Philadelphia 76ers"],
+                #'search_term': ["Houston Rockets"],
+                #'search_term': ["Miami Heat"],
+                #'search_term': ["Milwaukee Bucks"],
+                #'search_term': ["Chicago Bulls"],
+                #'search_term': ["faucet"],
+                #'search_term': ["spigot"],
+                #'search_term': ["pop drink"],
+                #'search_term': ["soda drink"],
+                #'search_term': ["coke drink"],
+
 
             # Can be country, state, or DMA. States are US-CA. DMA are a 3 digit code; see Nielsen for info.
             'region': region,

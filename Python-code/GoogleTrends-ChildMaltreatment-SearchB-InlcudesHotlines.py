@@ -1,3 +1,6 @@
+#
+# This is the code we thought we were going to use until we realized we could expand the number of terms in the search
+#
 # 1 INITIALIZATION
 
 # import SearchSampler script from Pew Code
@@ -17,20 +20,14 @@ output_path = 'C:\\Users\\Krist\\Box Sync\\Google-search-data\\Child-Maltreatmen
 # tell the rolling window how many samples to pull. For this purposes of this project, we are pulling one at a time
 num_samples = 1
 
-# list of all state codes to run search_sampler wwith. Can pull national level saerches with :  states = ['US']
-'''states = ['US-AK', 'US-AL', 'US-AR','US-AZ','US-CA', 'US-CO', 'US-CT', 'US-DC','US-DE', 'US-FL', 'US-GA', 'US-HI',
-'US-IA', 'US-ID', 'US-IL', 'US-IN','US-KS', 'US-KY', 'US-LA', 'US-MA','US-MD', 'US-ME', 'US-MI', 'US-MN','US-MO', 'US-MS', 'US-MT', 'US-NC',
-'US-ND', 'US-NE', 'US-NH', 'US-NJ','US-NM', 'US-NV', 'US-NY', 'US-OH','US-OK', 'US-OR', 'US-PA', 'US-RI','US-SC', 'US-SD', 'US-TN', 'US-TX',
-'US-UT', 'US-VA', 'US-VT', 'US-WA','US-WI', 'US-WV', 'US-WY']'''
+
+
 
 # ENTER SEARCH REGION HERE
 
-#states = ['US']
-states = ['US-ME', 'US-MI', 'US-MN','US-MO', 'US-MS', 'US-MT', 'US-NC',
-'US-ND', 'US-NE', 'US-NH', 'US-NJ','US-NM', 'US-NV', 'US-NY', 'US-OH','US-OK', 'US-OR', 'US-PA', 'US-RI','US-SC', 'US-SD', 'US-TN', 'US-TX',
-'US-UT', 'US-VA', 'US-VT', 'US-WA','US-WI', 'US-WV', 'US-WY']
+states = ['US-AK', 'US-AL', 'US-AR','US-AZ','US-CA', 'US-CO', 'US-CT', 'US-DC','US-DE', 'US-FL', 'US-GA', 'US-HI', 'US-IA', 'US-ID', 'US-IL', 'US-IN','US-KS', 'US-KY', 'US-LA', 'US-MA','US-MD', 'US-ME', 'US-MI', 'US-MN','US-MO', 'US-MS', 'US-MT', 'US-NC', 'US-ND', 'US-NE', 'US-NH', 'US-NJ','US-NM', 'US-NV', 'US-NY', 'US-OH','US-OK', 'US-OR', 'US-PA', 'US-RI','US-SC', 'US-SD', 'US-TN', 'US-TX', 'US-UT', 'US-VA', 'US-VT', 'US-WA','US-WI', 'US-WV', 'US-WY'],
 
-
+#We started running samples until we realized we were going to expand the search term
 #Sample 1
 #States Ran 7/17: 'US-AK', 'US-AL', 'US-AR','US-AZ','US-CA', 'US-CO', 'US-CT', 'US-DC','US-DE', 'US-FL', 'US-GA', 'US-HI', 'US-IA', 'US-ID', 'US-IL', 'US-IN','US-KS', 'US-KY', 'US-LA', 'US-MA','US-MD', 'US-ME', 'US-MI', 'US-MN','US-MO', 'US-MS', 'US-MT', 'US-NC', 'US-ND', 'US-NE', 'US-NH', 'US-NJ','US-NM', 'US-NV', 'US-NY', 'US-OH'
 #States Ran 7/18: 'US-OK','US-OR', 'US-PA', 'US-RI','US-SC', 'US-SD', 'US-TN', 'US-TX', 'US-UT', 'US-VA', 'US-VT', 'US-WA','US-WI', 'US-WV', 'US-WY'
@@ -88,12 +85,16 @@ def query(regionCodes, filePath):
         # search params
         params = {
 
+            #Search terms we were considering
+
+            #Final "Search B" - the combo search with only 30 terms. It includes 'child abuse hotline' and 'signs of abuse'
             'search_term': ["mom hit me + dad hit me + mother hit me + father hit me + mom hurt me + dad hurt me + mother hurt me + father hurt me + afraid of mom + afraid of dad + afraid of mother + afraid of father + mom hate me + dad hate me + mother hate me + father hate me + mom is high + dad is high + mother is high + father is high + mom passed out + dad passed out + mother passed out + father passed out + mom touch my + dad touch my + mother touch my + father touch my + child abuse hotline + signs of child abuse"],
 
-            #Search A for when it's ready
+            #Search A  - the combo search with only 28 terms. It removed 'child abuse hotline' and 'signs of abuse'
              #'search_term': ["mom hit me + dad hit me + mother hit me + father hit me + mom hurt me + dad hurt me + mother hurt me + father hurt me + afraid of mom + afraid of dad + afraid of mother + afraid of father + mom hate me + dad hate me + mother hate me + father hate me + mom is high + dad is high + mother is high + father is high + mom passed out + dad passed out + mother passed out + father passed out + mom touch my + dad touch my + mother touch my + father touch my"],
-            # Search C - replace hotline/signs with "have sex with me
-            #'search_term': ["mom hit me + dad hit me + mother hit me + father hit me + mom hurt me + dad hurt me + mother hurt me + father hurt me + afraid of mom + afraid of dad + afraid of mother + afraid of father + mom hate me + dad hate me + mother hate me + father hate me + mom is high + dad is high + mother is high + father is high + mom passed out + dad passed out + mother passed out + father passed out + mom touch my + dad touch my + mother touch my + father touch my + mom have sex with me + dad have sex with me"],
+
+            #Search C - the combo search with 30 terms. It replaced hotline/signs with "[mom/dad] have sex with me
+             #'search_term': ["mom hit me + dad hit me + mother hit me + father hit me + mom hurt me + dad hurt me + mother hurt me + father hurt me + afraid of mom + afraid of dad + afraid of mother + afraid of father + mom hate me + dad hate me + mother hate me + father hate me + mom is high + dad is high + mother is high + father is high + mom passed out + dad passed out + mother passed out + father passed out + mom touch my + dad touch my + mother touch my + father touch my + mom have sex with me + dad have sex with me"],
 
 
             # Search Region is defined by State variable above.
@@ -102,9 +103,6 @@ def query(regionCodes, filePath):
             # Must be in format YYYY-MM-DD
             'period_start': '2017-12-31',
             'period_end': '2020-07-11',
-
-            #'period_start': '2019-01-01',
-            #'period_end': '2019-12-31',
 
             # Options are day, week, month.
             'period_length': 'week'
