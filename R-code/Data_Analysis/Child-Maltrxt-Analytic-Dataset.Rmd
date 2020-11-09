@@ -1,0 +1,212 @@
+---
+title: "Child Maltreatment: Analytic Dataset"
+output: html_document
+---
+
+```{r Install Libraries, include=FALSE}
+riddellPath <- c( "/data/riddell//R/x86_64-pc-linux-gnu-library/4.0/" , .libPaths() )
+.libPaths(riddellPath)
+
+#install.packages("usethis")
+library(usethis)
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(stringr)
+library(directlabels)
+library(lubridate)
+```
+
+```{r Update filepaths, echo=FALSE, message=FALSE, warning=FALSE}
+
+Myfilepath.1 <- "/data/riddell/krista/GoogleTrendsProject/Data-for-Analysis/Child-Maltreatment - Combined"
+Myfilepath.2 <- "/data/riddell/krista/GoogleTrendsProject/Data-for-Analysis/Normalizing Terms/the"
+
+```
+
+```{r import data - Dataset, echo=FALSE, message=FALSE, warning=FALSE}
+
+#Query Data Import
+filenames.1 <- list.files(Myfilepath.1, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+
+Queries.1 <- filenames.1 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Data", "Riddell","Krista","Project","AnalysisData","CombinedData","SampleNo","StatesFolder","State","Filename"), "/") %>%
+  separate("State", c("US", "StateAbbr"),"-") %>%
+  mutate(year = format(timestamp, "%Y"))
+
+#Queries
+```
+
+
+```{r import data - NormalizingTerms, echo=FALSE, message=FALSE, warning=FALSE}}
+
+#Normalizing Terms Import
+filenames.2 <- list.files(Myfilepath.2, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+
+Queries.2<- filenames.2 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Data", "Riddell","Krista","Project","AnalysisData","Group","NormalizingTerm","StatesFolder","State","Filename"), "/") %>%
+  separate("State", c("US", "StateAbbr"),"-") 
+
+```
+
+
+```{r Data cleaning, echo=FALSE, message=FALSE, warning=FALSE}
+
+#Add "US" as a state for the national level queries
+Queries.1$StateAbbr[is.na(Queries.1$StateAbbr)]<-"US"
+Queries.2$StateAbbr[is.na(Queries.2$StateAbbr)]<-"US"
+
+#Select only the columns we want and add week
+Data.1 <- Queries.1 %>% 
+  select ("SampleNo","StateAbbr","timestamp", "value", "year") %>% 
+   mutate(year = format(timestamp, "%Y"), week_of_year = epiweek(timestamp)) %>% 
+  group_by(StateAbbr) 
+ # %>%   arrange(StateAbbr,year, week_of_year, timestamp)
+
+#Replace zero values with NA
+Data.1$value[Data.1$value == 0] <- NA
+
+
+Normalizing.Terms <- Queries.2 %>% 
+  select ("NormalizingTerm","StateAbbr","timestamp", "value") %>% 
+  mutate(year = format(timestamp, "%Y"), week_of_year = epiweek(timestamp), Date = as.Date(timestamp)) %>% 
+  group_by(StateAbbr) 
+
+
+#Data.1 
+#Normalizing.Terms
+
+```
+
+```{r add averages across samples for each week/state, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+#initialize States data frame by listing out all states and then removing those which aren't in our analysis
+#States removed from analysis due to lack of search data: VT ND WY SD AK DC MT RI DE
+
+state_list <- c(state.abb, "US")
+indexnums <- which(state_list %in% c("VT","ND","WY","SD","AK","MT","RI","DE"))
+state_list <- state_list[-indexnums]
+
+#Initialize data frame for Average of Samples calculation
+State.Avgs <- setNames(data.frame(matrix(ncol = 3, nrow = 0)), c("timestamp", "mean_value", "StateAbbr"))
+
+
+for(i in seq(1:length(state_list))){
+  
+  #For each state, create average over all samples for each timeframe
+  Avg.i <- filter(Data.1, StateAbbr == state_list[i]) %>%
+    group_by(timestamp) %>%
+    summarise(mean_value = mean(value, na.rm=TRUE))
+  
+    #Then add the state to the mean values, and bind the results to data from the previous iterations
+    StateAbbr.i <- rep(state_list[i], nrow(Avg.i))
+    Avg.i <- cbind(Avg.i, StateAbbr=StateAbbr.i)
+    State.Avgs <- rbind(State.Avgs, Avg.i)
+}
+
+#Add year and week to the data and convert the timestamp to a date
+State.Avgs %<>% mutate(year = format(timestamp, "%Y"), week_of_year = epiweek(timestamp), Date = as.Date(timestamp))
+
+#In both data sets, the first week of each year begins in the prior year (aka 2017.12.31 is week 1 of 2018), so the year column currently represents the wrong year. 
+#Thus we need to manually update the year for each of these weeks to correspond to the 1st week of the following year.
+
+State.Avgs$year[State.Avgs$Date == "2017-12-31"] <-"2018"
+Normalizing.Terms$year[Normalizing.Terms$Date == "2017-12-31"] <-"2018"
+
+State.Avgs$year[State.Avgs$Date == "2018-12-30"] <-"2019"
+Normalizing.Terms$year[Normalizing.Terms$Date == "2018-12-30"] <-"2019"
+
+State.Avgs$year[State.Avgs$Date == "2019-12-29"] <-"2020"
+Normalizing.Terms$year[Normalizing.Terms$Date == "2019-12-29"] <-"2020"
+
+
+```
+
+
+```{r Normalize our dataset using the normalizing term, echo=FALSE, message=FALSE, warning=FALSE}
+
+#Note: because we don't have data for all weeks in 2020, this calculation has been separated out into 2 parts
+
+
+#Part 1: Years 2017-2019
+
+#Initialize Data frame and 
+Final.Data <- setNames(data.frame(matrix(ncol = 7, nrow = 0)), c("StateAbbr", "Year", "week_of_year", "Normalized_Value", "Orig_Avg", "Orig_the_value" ,"Date"))
+Years = c("2017","2018","2019")
+Weeks = c(1:52)
+
+#Loop over all States 
+for(i in seq(1:length(state_list))){
+  
+  Avgs.i <- State.Avgs %>% filter(StateAbbr == state_list[i])
+  Normalizing.i <- Normalizing.Terms %>% filter(StateAbbr == state_list[i])
+ 
+  #Loop over all years
+  for (j in seq(1:3) ){
+    
+    Avgs.ij <- Avgs.i %>% filter(year == Years[j])
+    Normalizing.ij <- Normalizing.i %>% filter(year == Years[j])
+    
+    #Loop over all weeks in year
+     for (k in seq(1:52)){
+       
+       Avgs.ijk <- Avgs.ij %>% filter(week_of_year == Weeks[k])
+       Normalizing.ijk <- Normalizing.ij %>% filter(week_of_year == Weeks[k])
+       
+       #Calculation of normalizing value
+       Normalized_Value.ijk <- Avgs.ijk$mean_value / Normalizing.ijk$value * 1000000
+       
+       #create the new row representing the normalized term for state i, year j, week k and  bind the results to data from the previous iterations
+       NewRow.ijk <- cbind(StateAbbr = state_list[i], Year = Years[j], week_of_year = Weeks[k], Normalized_Value = Normalized_Value.ijk, Orig_Avg = Avgs.ijk$mean_value, Orig_the_value = Normalizing.ijk$value, Date = format(Avgs.ijk$Date))
+       Final.Data <- rbind(Final.Data, NewRow.ijk)
+     }
+  }
+}
+
+
+#Part 2: Year 2020 Only (we only have data for weeks 1 -34)
+
+Weeks2020 = c(1:34)
+
+#Loop over all States 
+for(i in seq(1:length(state_list))){
+  
+  Avgs.ij <- State.Avgs %>% filter(StateAbbr == state_list[i] & year == "2020")
+  Normalizing.ij <- Normalizing.Terms %>% filter(StateAbbr == state_list[i] & year == "2020")
+
+    
+    #Loop over all weeks in 2020
+     for (k in seq(1:length(Weeks2020))){
+       
+       Avgs.ijk <- Avgs.ij %>% filter(week_of_year == Weeks2020[k])
+       Normalizing.ijk <- Normalizing.ij %>% filter(week_of_year == Weeks2020[k])
+       
+       #Calculation of normalizing value
+       Normalized_Value.ijk <- Avgs.ijk$mean_value / Normalizing.ijk$value * 1000000
+       
+       #create the new row representing the normalized term for state i, year j, week k and  bind the results to data from the previous iterations
+       NewRow.ijk <- cbind(StateAbbr = state_list[i], Year = "2020", week_of_year = Weeks2020[k], Normalized_Value = Normalized_Value.ijk, Orig_Avg = Avgs.ijk$mean_value, Orig_the_value = Normalizing.ijk$value, Date = format(Avgs.ijk$Date))
+       Final.Data <- rbind(Final.Data, NewRow.ijk)
+     }
+}
+
+
+Final.Data$Normalized_Value[is.nan(Final.Data$Normalized_Value)] <- NA
+
+```
+
+```{r export to csv, echo=FALSE, message=FALSE, warning=FALSE}
+write.csv(Final.Data, file = "Child-Maltrxt-Data-For-Analysis.csv")
+write.csv(Normalizing.Terms, file = "Normalizing_terms_raw_file.csv")
+write.csv(State.Avgs, file = "State_Avgs_raw_file.csv")
+write.csv(Data.1, file = "All_search_data_filtered_raw_file.csv")
+```
+

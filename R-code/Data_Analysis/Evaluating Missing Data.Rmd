@@ -1,0 +1,99 @@
+---
+title: "Evaluating Missing Data"
+output: html_document
+---
+
+```{r Install Libraries, include=FALSE}
+riddellPath <- c( "/data/riddell//R/x86_64-pc-linux-gnu-library/4.0/" , .libPaths() )
+.libPaths(riddellPath)
+
+library(usethis)
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(stringr)
+library(directlabels)
+library(lubridate)
+
+```
+
+
+```{r import data - Dataset, echo=FALSE, message=FALSE, warning=FALSE}
+
+Data <- read.csv("Child-Maltrxt-Data-For-Analysis-Add-Normalized-terms.csv", header = TRUE, sep = ",")
+
+#Ensure Date field is in data format
+Data$Date <- as.Date(Data$Date)
+
+```
+
+```{r Count missing data, echo=FALSE, message=FALSE, warning=FALSE}
+
+MissingData <- Data %>%  filter(is.na(Data$Orig_Avg))
+
+StatesList <- unique(MissingData$StateAbbr)
+Years <- c("2017", "2018", "2019", "2020")
+Missing_Summary <- setNames(data.frame(matrix(ncol = 3, nrow = 0)), c("StateAbbr", "No_Missing_Data_Points", "No_SIPWeeks_Missing"))
+
+
+for(i in seq(1:length(StatesList))){
+  MissingData.i <- MissingData %>% filter(StateAbbr == StatesList[i])
+  
+    missing.i <-  sum(is.na(MissingData.i$Orig_Avg))
+    WeeksSIP.i <- sum(MissingData.i$SIP_v1)
+    
+    #create the new row 
+    NewRow.i <- cbind(StateAbbr = StatesList[i], No_Missing_Data_Points = missing.i, No_SIPWeeks_Missing= WeeksSIP.i)
+    Missing_Summary <- rbind(Missing_Summary, NewRow.i)
+}
+  
+Missing_Summary$No_Missing_Data_Points <- as.numeric(Missing_Summary$No_Missing_Data_Points)
+Missing_Summary$No_SIPWeeks_Missing <- as.numeric(Missing_Summary$No_SIPWeeks_Missing)
+
+
+Missing_Summary <- Missing_Summary  %>% 
+  arrange(desc(No_Missing_Data_Points),No_SIPWeeks_Missing)  
+
+
+Missing_Summary %<>%  bind_rows(summarise_all(., funs(if(is.numeric(.)) sum(.) else "Total")))
+
+
+#Same summary but includes years
+
+Missing_Summary_Years <- setNames(data.frame(matrix(ncol = 4, nrow = 0)), c("StateAbbr", "Year", "No_Missing_Data_Points", "No_SIPWeeks_Missing"))
+
+
+for(i in seq(1:length(StatesList))){
+  MissingData.i <- MissingData %>% filter(StateAbbr == StatesList[i])
+  
+  #Loop over all years
+  for (j in seq(1:4) ){
+    
+    MissingData.ij <- MissingData.i %>% filter(Year == Years[j])
+    
+    missing.ij <-  sum(is.na(MissingData.ij$Orig_Avg))
+    WeeksSIP.ij <- sum(MissingData.ij$SIP_v1)
+    
+    #create the new row 
+    NewRow.ij <- cbind(StateAbbr = StatesList[i], Year = Years[j], No_Missing_Data_Points = missing.ij, No_SIPWeeks_Missing= WeeksSIP.ij)
+    Missing_Summary_Years <- rbind(Missing_Summary_Years, NewRow.ij)
+  }
+}
+  
+Missing_Summary_Years$No_Missing_Data_Points <- as.numeric(Missing_Summary_Years$No_Missing_Data_Points)
+Missing_Summary_Years$No_SIPWeeks_Missing <- as.numeric(Missing_Summary_Years$No_SIPWeeks_Missing)
+
+
+Missing_Summary_Years %<>%  bind_rows(summarise_all(., funs(if(is.numeric(.)) sum(.) else "Total")))
+
+
+#sum(Missing_Summary$No_Missing_Data_Points)
+#sum(Missing_Summary$No_SIPWeeks)
+```
+
+```{r Export Data}
+write.csv(Missing_Summary, "Missing_Data_Summary.csv")
+write.csv(Missing_Summary_Years, "Missing_Data_Summary_By_Year.csv")
+```
+
