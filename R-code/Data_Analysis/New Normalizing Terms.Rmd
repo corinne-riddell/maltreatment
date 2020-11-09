@@ -1,0 +1,331 @@
+---
+title: "Look at Additional Normalizing Terms"
+output: html_document
+---
+
+
+
+```{r Install Libraries, include=FALSE}
+riddellPath <- c( "/data/riddell//R/x86_64-pc-linux-gnu-library/4.0/" , .libPaths() )
+.libPaths(riddellPath)
+
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(stringr)
+library(directlabels)
+library(lubridate)
+```
+
+```{r Upload Data, echo=FALSE, message=FALSE, warning=FALSE}
+
+#  Set filepaths and upload Normalizing data.
+
+Myfilepath.1 <- "/data/riddell/krista/GoogleTrendsProject/Data-for-Analysis/Normalizing Terms/comedy"
+Myfilepath.2 <- "/data/riddell/krista/GoogleTrendsProject/Data-for-Analysis/Normalizing Terms/Song Lyrics"
+
+filenames.1 <- list.files(Myfilepath.1, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+filenames.2 <- list.files(Myfilepath.2, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Normalizing Term and
+Queries.1 <- filenames.1 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Data", "Riddell","Krista","Project","AnalysisData","Group","NormalizingTerm","StatesFolder","State","Filename"), "/") %>%
+  separate("State", c("US", "StateAbbr"),"-") %>%
+  mutate(year = format(timestamp, "%Y"))
+
+
+#Normalizing Term a
+Queries.2 <- filenames.2 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Data", "Riddell","Krista","Project","AnalysisData","Group","NormalizingTerm","StatesFolder","State","Filename"), "/") %>%
+  separate("State", c("US", "StateAbbr"),"-") %>%
+  mutate(year = format(timestamp, "%Y"))
+
+#Analytic Data
+Analytic_Data <- read.csv("/data/riddell/krista/GoogleTrendsProject/Data-for-Analysis/Exposure-Outcome-Data/Child-Maltrxt-Data-For-Analysis-Final.csv", header = TRUE, sep = ",")
+```
+
+
+```{r Data cleaning and Manipulation, echo=FALSE, message=FALSE, warning=FALSE}
+
+#Ensure the Date field of the Analytic Data set is a date field
+Analytic_Data$Date <- as.Date(Analytic_Data$Date)
+
+#Rename some of the columns for analytic Data
+#Analytic_Data %<>% rename(Normalized_avg_the = Normalized_Value)
+    
+#Add "US" as a state for normalizing terms
+Queries.1$StateAbbr[is.na(Queries.1$StateAbbr)]<-"US"
+Queries.2$StateAbbr[is.na(Queries.2$StateAbbr)]<-"US"
+
+#Select which columns from the Normalizing Data we want to use
+Normalizing.comedy <- Queries.1 %>% 
+  select ("NormalizingTerm","StateAbbr","timestamp", "value", "year") %>% 
+  mutate(year = format(timestamp, "%Y"), week_of_year = epiweek(timestamp), Date = as.Date(timestamp)) %>% 
+  group_by(StateAbbr) 
+
+Normalizing.songlyrics <- Queries.2 %>% 
+  select ("NormalizingTerm","StateAbbr","timestamp", "value", "year") %>% 
+  mutate(year = format(timestamp, "%Y"), week_of_year = epiweek(timestamp), Date = as.Date(timestamp)) %>%  
+  group_by(StateAbbr) 
+
+#In both data sets, the first week of each year begins in the prior year (aka 2017.12.31 is week 1 of 2018), so the year column currently represents the wrong year. 
+#Thus we need to manually update the year for each of these weeks to correspond to the 1st week of the following year.
+
+Normalizing.comedy$year[Normalizing.comedy$Date == "2017-12-31"] <-"2018"
+Normalizing.songlyrics$year[Normalizing.songlyrics$Date == "2017-12-31"] <-"2018"
+
+Normalizing.comedy$year[Normalizing.comedy$Date == "2018-12-30"] <-"2019"
+Normalizing.songlyrics$year[Normalizing.songlyrics$Date == "2018-12-30"] <-"2019"
+
+Normalizing.comedy$year[Normalizing.comedy$Date == "2019-12-29"] <-"2020"
+Normalizing.songlyrics$year[Normalizing.songlyrics$Date == "2019-12-29"] <-"2020"
+
+```
+
+
+```{r National Level Plots, echo = F,  fig.height = 20, fig.width = 28, message=F, warning=F}
+
+#All Normalizing Terms over all years
+
+ggplot(data = Normalizing.comedy %>% filter(StateAbbr != "US"), aes(x = Date, y = value)) +
+  geom_line(data = Normalizing.comedy %>% filter(StateAbbr != "US"), color = "blue") +
+  geom_line(data = Normalizing.songlyrics %>% filter(StateAbbr != "US"), color = "red") +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Compare trends of Normalizing terms over all years including 2020",
+       subtitle = "'Song Lyrics' in red,'Comedy' in blue") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) +
+  facet_geo(~ StateAbbr) 
+
+
+# Plots for Year over Year Normalizing Terms
+
+
+ggplot(data = Normalizing.comedy %>% filter(StateAbbr != "US"), aes(x = week_of_year, y = value)) +
+  geom_line(data = Normalizing.comedy %>% filter(StateAbbr != "US"), aes(col = year)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Compare YOY Trends of Comedy",
+       subtitle = "Normalizing Term Option") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) +
+  facet_geo(~ StateAbbr) 
+
+ggplot(data = Normalizing.songlyrics %>% filter(StateAbbr != "US"), aes(x = week_of_year, y =value)) +
+  geom_line(data = Normalizing.songlyrics %>% filter(StateAbbr != "US"), aes(col = year)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Compare YOY Trends of Song Lyrics",
+       subtitle = "Normalizing Term Option") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) +
+  facet_geo(~ StateAbbr) 
+
+```
+
+
+```{r State Level Plots, echo = F,  fig.height = 20, fig.width = 28, message=F, warning=F}
+
+#California
+
+ggplot(data = Normalizing.comedy %>% filter(StateAbbr == "CA"), aes(x = Date, y = value)) +
+  geom_line(data = Normalizing.comedy %>% filter(StateAbbr == "CA"), color = "blue") +
+  geom_line(data = Normalizing.songlyrics %>% filter(StateAbbr == "CA"), color = "red") +
+  geom_vline(xintercept = as.numeric(as.Date("2020-03-15")), linetype=4) +
+  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm", data = Normalizing.songlyrics %>% filter(StateAbbr == "CA"), color = "red") +
+    labs(x = "Date", 
+       y = "Search outcome",
+       title = "California",
+       subtitle = "'Song Lyrics' in red,'Comedy' in blue") +
+  theme_minimal(base_size = 18) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) 
+
+
+#Minnesota
+
+ggplot(data = Normalizing.comedy %>% filter(StateAbbr == "MN"), aes(x = Date, y = value)) +
+  geom_line(data = Normalizing.comedy %>% filter(StateAbbr == "MN"), color = "blue") +
+  geom_line(data = Normalizing.songlyrics %>% filter(StateAbbr == "MN"), color = "red") +
+  geom_vline(xintercept = as.numeric(as.Date("2020-03-15")), linetype=4) +
+  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm", data = Normalizing.songlyrics %>% filter(StateAbbr == "MN"), color = "red") +
+    labs(x = "Date", 
+       y = "Search outcome",
+       title = "Minnesota",
+       subtitle = "'Song Lyrics' in red,'Comedy' in blue") +
+  theme_minimal(base_size = 18) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) 
+
+
+#Kansas
+
+ggplot(data = Normalizing.comedy %>% filter(StateAbbr == "KS"), aes(x = Date, y = value)) +
+  geom_line(data = Normalizing.comedy %>% filter(StateAbbr == "KS"), color = "blue") +
+  geom_line(data = Normalizing.songlyrics %>% filter(StateAbbr == "KS"), color = "red") +
+  geom_vline(xintercept = as.numeric(as.Date("2020-03-15")), linetype=4) +
+  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm", data = Normalizing.songlyrics %>% filter(StateAbbr == "KS"), color = "red") +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Kansas",
+       subtitle = "'Song Lyrics' in red,'Comedy' in blue") +
+  theme_minimal(base_size = 18) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24))  
+
+#Maine
+
+ggplot(data = Normalizing.comedy %>% filter(StateAbbr == "ME"), aes(x = Date, y = value)) +
+  geom_line(data = Normalizing.comedy %>% filter(StateAbbr == "ME"), color = "blue") +
+  geom_line(data = Normalizing.songlyrics %>% filter(StateAbbr == "ME"), color = "red") +
+  geom_vline(xintercept = as.numeric(as.Date("2020-03-15")), linetype=4) +
+  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm", data = Normalizing.songlyrics %>% filter(StateAbbr == "ME"), color = "red") +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Maine",
+       subtitle = "'Song Lyrics' in red,'Comedy' in blue") +
+  theme_minimal(base_size = 18) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) 
+
+#Idaho
+
+ggplot(data = Normalizing.comedy %>% filter(StateAbbr == "ID"), aes(x = Date, y = value)) +
+  geom_line(data = Normalizing.comedy %>% filter(StateAbbr == "ID"), color = "blue") +
+  geom_line(data = Normalizing.songlyrics %>% filter(StateAbbr == "ID"), color = "red") +
+  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm", data = Normalizing.songlyrics %>% filter(StateAbbr == "ID"), color = "red") +
+  geom_vline(xintercept = as.numeric(as.Date("2020-03-15")), linetype=4) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Idaho",
+       subtitle = "'Song Lyrics' in red,'Comedy' in blue") +
+  theme_minimal(base_size = 18) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) 
+
+
+```
+
+```{r Rescaled normalzing plots against search terms, echo = F,  fig.height = 20, fig.width = 28, message=F, warning=F }
+
+Data_Comedy_rescaled <- Normalizing.comedy %>% mutate(Scaled_value = value/10)
+Data_Songs_rescaled <- Normalizing.songlyrics %>% mutate(Scaled_value = value/10)
+
+#California
+
+ggplot(data = Data_Comedy_rescaled %>% filter(StateAbbr == "CA" & year != "2020"), aes(x = Date, y = Scaled_value)) +
+  geom_line(data = Data_Comedy_rescaled %>% filter(StateAbbr == "CA" & year != "2020"), color = "blue") +
+  geom_line(data = Data_Songs_rescaled %>% filter(StateAbbr == "CA" & year != "2020"), color = "red") +
+   geom_line(data = Analytic_Data %>% filter(StateAbbr == "CA" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+     labs(x = "Date", 
+       y = "Search outcome",
+       title = "California: Scaled Normalizing terms vs Orig Avg",
+       subtitle = "'Song Lyrics' in red,'Comedy' in blue") +
+  theme_minimal(base_size = 18) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) 
+
+
+#Minnesota
+
+ggplot(data = Data_Comedy_rescaled %>% filter(StateAbbr == "MN" & year != "2020"), aes(x = Date, y = Scaled_value)) +
+  geom_line(data = Data_Comedy_rescaled %>% filter(StateAbbr == "MN" & year != "2020"), color = "blue") +
+  geom_line(data = Data_Songs_rescaled %>% filter(StateAbbr == "MN" & year != "2020"), color = "red") +
+   geom_line(data = Analytic_Data %>% filter(StateAbbr == "MN" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+     labs(x = "Date", 
+       y = "Search outcome",
+       title = "Minnesota: Scaled Normalizing terms vs Orig Avg",
+       subtitle = "'Song Lyrics' in red,'Comedy' in blue") +
+  theme_minimal(base_size = 18) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) 
+
+
+#Kansas
+
+ggplot(data = Data_Comedy_rescaled %>% filter(StateAbbr == "KS" & year != "2020"), aes(x = Date, y = Scaled_value)) +
+  geom_line(data = Data_Comedy_rescaled %>% filter(StateAbbr == "KS" & year != "2020"), color = "blue") +
+  geom_line(data = Data_Songs_rescaled %>% filter(StateAbbr == "KS" & year != "2020"), color = "red") +
+  geom_line(data = Analytic_Data %>% filter(StateAbbr == "KS" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Kansas: Scaled Normalizing terms vs Orig Avg",
+       subtitle = "'Song Lyrics' in red,'Comedy' in blue") +
+  theme_minimal(base_size = 18) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24))  
+
+#Maine
+
+ggplot(data = Data_Comedy_rescaled %>% filter(StateAbbr == "ME" & year != "2020"), aes(x = Date, y = Scaled_value)) +
+  geom_line(data = Data_Comedy_rescaled %>% filter(StateAbbr == "ME" & year != "2020"), color = "blue") +
+  geom_line(data = Data_Songs_rescaled %>% filter(StateAbbr == "ME" & year != "2020"), color = "red") +
+  geom_line(data = Analytic_Data %>% filter(StateAbbr == "ME" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Maine: Scaled Normalizing terms vs Orig Avg",
+       subtitle = "'Song Lyrics' in red,'Comedy' in blue") +
+  theme_minimal(base_size = 18) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) 
+
+#Idaho
+
+ggplot(data = Data_Comedy_rescaled %>% filter(StateAbbr == "ID" & year != "2020"), aes(x = Date, y = Scaled_value)) +
+  geom_line(data = Data_Comedy_rescaled %>% filter(StateAbbr == "ID" & year != "2020"), color = "blue") +
+  geom_line(data = Data_Songs_rescaled %>% filter(StateAbbr == "ID" & year != "2020"), color = "red") +
+  geom_line(data = Analytic_Data %>% filter(StateAbbr == "ID" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Idaho: Scaled Normalizing terms vs Orig Avg",
+       subtitle = "'Song Lyrics' in red,'Comedy' in blue") +
+  theme_minimal(base_size = 18) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) 
+
+```
+
+```{r RESCALED National Level Plots, echo = F,  fig.height = 20, fig.width = 28, message=F, warning=F}
+
+# Data_Comedy_rescaled2 <- Normalizing.comedy %>% mutate(Scaled_value = value*100)
+# Data_Songs_rescaled2 <- Normalizing.songlyrics %>% mutate(Scaled_value = value*100)
+# 
+# #All Normalizing Terms over all years
+# 
+# ggplot(data = Data_Comedy_rescaled2 %>% filter(StateAbbr != "US"), aes(x = Date, y = Scaled_value)) +
+#   geom_line(data = Data_Comedy_rescaled2 %>% filter(StateAbbr != "US"), color = "blue") +
+#   geom_line(data = Data_Songs_rescaled2 %>% filter(StateAbbr != "US"), color = "red") +
+#   labs(x = "Date", 
+#        y = "Search outcome",
+#        title = "Compare trends of Normalizing terms over all years including 2020",
+#        subtitle = "'Song Lyrics' in red,'Comedy' in blue") +
+#   theme_minimal(base_size = 18) +
+#   theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) +
+#   facet_geo(~ StateAbbr) 
+# 
+# 
+# # Plots for Year over Year Normalizing Terms
+# 
+# 
+# ggplot(data = Data_Comedy_rescaled2 %>% filter(StateAbbr != "US"), aes(x = week_of_year, y = Scaled_value)) +
+#   geom_line(data = Data_Comedy_rescaled2 %>% filter(StateAbbr != "US"), aes(col = year)) +
+#   labs(x = "Date", 
+#        y = "Search outcome",
+#        title = "Compare YOY Trends of Comedy",
+#        subtitle = "Normalizing Term Option") +
+#   theme_minimal(base_size = 18) +
+#   theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) +
+#   facet_geo(~ StateAbbr) 
+# 
+# ggplot(data = Data_Songs_rescaled2 %>% filter(StateAbbr != "US"), aes(x = week_of_year, y = Scaled_value)) +
+#   geom_line(data = Data_Songs_rescaled2 %>% filter(StateAbbr != "US"), aes(col = year)) +
+#   labs(x = "Date", 
+#        y = "Search outcome",
+#        title = "Compare YOY Trends of Song Lyrics",
+#        subtitle = "Normalizing Term Option") +
+#   theme_minimal(base_size = 18) +
+#   theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) +
+#   facet_geo(~ StateAbbr) 
+
+```

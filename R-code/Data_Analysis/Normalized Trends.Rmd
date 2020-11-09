@@ -1,0 +1,221 @@
+---
+title: "Normalized Values Visualizations"
+output: html_document
+---
+
+```{r Install Libraries, include=FALSE}
+riddellPath <- c( "/data/riddell//R/x86_64-pc-linux-gnu-library/4.0/" , .libPaths() )
+.libPaths(riddellPath)
+
+#install.packages("usethis")
+library(usethis)
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(stringr)
+library(directlabels)
+library(lubridate)
+```
+
+
+```{r import data - Dataset, echo=FALSE, message=FALSE, warning=FALSE}
+
+Data <- read.csv("Child-Maltrxt-Data-For-Analysis-Add-Normalized-terms.csv", header = TRUE, sep = ",")
+
+#Ensure Date field is in data format
+Data$Date <- as.Date(Data$Date)
+
+#Convert to long format to make easier to graph
+Data_long1 <- gather(Data, Normalizing_term, Normalized_value, Normalized_avg_the, Normalized_avg_and, Normalized_avg_a, factor_key=TRUE)
+#Ensure year field is a factor
+Data_long1$Year = as.factor(Data_long1$Year) 
+
+Data_long2 <- gather(Data, Orig_Normalizing_term, Orig_Normalizing_value, Orig_the_value, Orig_and_value, Orig_a_value, factor_key=TRUE)
+
+#Rescale the Orig Normalizing values to the same scale as the normalized values and combine into dataframe
+
+Data_long2_rescaled <- Data_long2 %>% mutate(Scaled_value = Orig_Normalizing_value/1000)
+Data_long3 <-gather(Data_long2_rescaled, Normalizing_term, Normalized_value, Normalized_avg_the, Normalized_avg_and, Normalized_avg_a, factor_key=TRUE)
+```
+
+
+```{r National Level Plots, echo = F,  fig.height = 20, fig.width = 28, message=F, warning=F}
+
+#All Normalizing Terms over all years
+
+ggplot(data = Data_long2 %>% filter(StateAbbr != "US"), aes(x = Date, y = Orig_Normalizing_value)) +
+  geom_line(data = Data_long2 %>% filter(StateAbbr != "US"), aes(col = Orig_Normalizing_term)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Compare Trends of Normalized terms 'the' 'and' 'a'",
+       subtitle = "Over all years including 2020") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) +
+  facet_geo(~ StateAbbr) 
+
+
+# Plots for Year over Year Normalizing Terms
+
+
+ggplot(data = Data_long1 %>% filter(StateAbbr != "US"), aes(x = week_of_year, y = Orig_the_value)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr != "US"), aes(col = Year)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Compare YOY Trends of Normalized terms",
+       subtitle = "the") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) +
+  facet_geo(~ StateAbbr) 
+
+ggplot(data = Data_long1 %>% filter(StateAbbr != "US"), aes(x = week_of_year, y = Orig_and_value)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr != "US"), aes(col = Year)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Compare YOY Trends of Normalized terms",
+       subtitle = "and") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) +
+  facet_geo(~ StateAbbr) 
+
+ggplot(data = Data_long1 %>% filter(StateAbbr != "US"), aes(x = week_of_year, y = Orig_a_value)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr != "US"), aes(col = Year)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Compare YOY Trends of Normalized terms",
+       subtitle = "a") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=24)) +
+  facet_geo(~ StateAbbr) 
+
+
+# Normalized Values Plots
+
+ggplot(data = Data_long1 %>% filter(StateAbbr != "US" & Year != "2020"), aes(x = Date, y = Normalized_value)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr != "US" & Year != "2020"), aes(col = Normalizing_term)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr != "US" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Compare Normalized Values of 'the' 'and' 'a' from 2017-2019",
+       subtitle = "Original not-normalized sample averages in black") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) +
+  facet_geo(~ StateAbbr) 
+
+```
+
+
+
+```{r A couple of states, echo = F,  fig.height = 20, fig.width = 28, message=F, warning=F}
+
+cat("State Plots of Normalizing TERMS vs original sample avgs. Normalizing terms have been scaled by a factor of 1000 to fit on the graph")
+
+ggplot(data = Data_long3 %>% filter(StateAbbr == "CA" & Year != "2020"), aes(x = Date, y = Scaled_value)) +
+  geom_line(data = Data_long3 %>% filter(StateAbbr == "CA" & Year != "2020"), aes(col = Orig_Normalizing_term)) +
+  geom_line(data = Data_long3 %>% filter(StateAbbr == "CA" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "CALIFORNIA Compare Trends of 3 (scaled) normalizing terms",
+       subtitle = "Original Sample Averages in Black") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=20))
+
+ggplot(data = Data_long3 %>% filter(StateAbbr == "WV" & Year != "2020"), aes(x = Date, y = Scaled_value)) +
+  geom_line(data = Data_long3 %>% filter(StateAbbr == "WV" & Year != "2020"), aes(col = Orig_Normalizing_term)) +
+  geom_line(data = Data_long3 %>% filter(StateAbbr == "WV" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "WEST VIRGINIA Compare Trends of 3 (scaled) normalizing terms",
+       subtitle = "Original Sample Averages in Black") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=20))
+
+ggplot(data = Data_long3 %>% filter(StateAbbr == "AR" & Year != "2020"), aes(x = Date, y = Scaled_value)) +
+  geom_line(data = Data_long3 %>% filter(StateAbbr == "AR" & Year != "2020"), aes(col = Orig_Normalizing_term)) +
+  geom_line(data = Data_long3 %>% filter(StateAbbr == "AR" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "ARKANSAS Compare Trends of 3 (scaled) normalizing terms",
+       subtitle = "Original Sample Averages in Black") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=20))
+
+ggplot(data = Data_long3 %>% filter(StateAbbr == "KS" & Year != "2020"), aes(x = Date, y = Scaled_value)) +
+  geom_line(data = Data_long3 %>% filter(StateAbbr == "KS" & Year != "2020"), aes(col = Orig_Normalizing_term)) +
+  geom_line(data = Data_long3 %>% filter(StateAbbr == "KS" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "KANSAS Compare Trends of 3 (scaled) normalizing terms",
+       subtitle = "Original Sample Averages in Black") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=20))
+
+ggplot(data = Data_long3 %>% filter(StateAbbr == "TX" & Year != "2020"), aes(x = Date, y = Scaled_value)) +
+  geom_line(data = Data_long3 %>% filter(StateAbbr == "TX" & Year != "2020"), aes(col = Orig_Normalizing_term)) +
+  geom_line(data = Data_long3 %>% filter(StateAbbr == "TX" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "TEXAS Compare Trends of 3 (scaled) normalizing terms",
+       subtitle = "Original Sample Averages in Black") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=20))
+
+
+
+
+
+
+cat("State Plots of Normalized VALUES vs original sample averages")
+
+ggplot(data = Data_long1 %>% filter(StateAbbr == "CA" & Year != "2020"), aes(x = Date, y = Normalized_value)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr == "CA" & Year != "2020"), aes(col = Normalizing_term)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr == "CA" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "CALIFORNIA Compare Trends of Normalized VALUES",
+       subtitle = "Original Sample Averages in Black") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=20))
+
+ggplot(data = Data_long1 %>% filter(StateAbbr == "WV" & Year != "2020"), aes(x = Date, y = Normalized_value)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr == "WV" & Year != "2020"), aes(col = Normalizing_term)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr == "WV" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "WEST VIRGINIA Compare Trends of Normalized VALUES",
+       subtitle = "Original Sample Averages in Black") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=20))
+
+ggplot(data = Data_long1 %>% filter(StateAbbr == "AR" & Year != "2020"), aes(x = Date, y = Normalized_value)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr == "AR" & Year != "2020"), aes(col = Normalizing_term)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr == "AR" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "ARKANSAS Compare Trends of Normalized VALUESs",
+       subtitle = "Original Sample Averages in Black") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=20))
+
+ggplot(data = Data_long1 %>% filter(StateAbbr == "KS" & Year != "2020"), aes(x = Date, y = Normalized_value)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr == "KS" & Year != "2020"), aes(col = Normalizing_term)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr == "KS" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "KANSAS Compare Trends of Normalized VALUES",
+       subtitle = "Original Sample Averages in Black") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=20))
+
+ggplot(data = Data_long1 %>% filter(StateAbbr == "TX" & Year != "2020"), aes(x = Date, y = Normalized_value)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr == "TX" & Year != "2020"), aes(col = Normalizing_term)) +
+  geom_line(data = Data_long1 %>% filter(StateAbbr == "TX" & Year != "2020"), color = "black", aes(y = Orig_Avg)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "TEXAS Compare Trends of Normalized VALUES",
+       subtitle = "Original Sample Averages in Black") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=20))
+```
+
+

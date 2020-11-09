@@ -1,0 +1,487 @@
+---
+title: "Child Maltreatment: Additional Sample Tests and Normalizing Terms"
+output: html_document
+---
+
+To Test whether or not additional samples help smooth our trend lines, we ran 5 additional samples for select states:
+states = ['US-IA', 'US-KS', 'US-AR', 'US-ME', 'US-CT']
+
+
+We also pulled 3 potential Normalizing terms:
+1) the
+2) gmail or g-mail
+3) weather
+
+```{r Install Libraries, include=FALSE}
+riddellPath <- c( "/data/riddell//R/x86_64-pc-linux-gnu-library/4.0/" , .libPaths() )
+.libPaths(riddellPath)
+
+library(geofacet) 
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(stringr)
+library(directlabels)
+library(lubridate)
+```
+
+```{r Update Directory and filepaths, echo=FALSE, message=FALSE, warning=FALSE}
+
+#  Set filepaths for data upload. Useful for sharing R code with others
+
+Myfilepath.1 <- "/data/riddell/krista/GoogleTrendsProject/Data-for-Analysis/Child-Maltreatment"
+Myfilepath.2 <- "/data/riddell/krista/GoogleTrendsProject/Data-for-Analysis/Child-Maltreatment-Additional Samples"
+Myfilepath.3 <- "/data/riddell/krista/GoogleTrendsProject/Data-for-Analysis/Normalizing Terms"
+
+```
+
+```{r import data - First half of dataset, echo=FALSE, message=FALSE, warning=FALSE}
+
+filenames.1 <- list.files(Myfilepath.1, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+filenames.2 <- list.files(Myfilepath.2, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+filenames.3 <- list.files(Myfilepath.3, full.names = TRUE, recursive = TRUE, ignore.case = TRUE)
+
+#Group 1 - 10 Samples
+Queries.1 <- filenames.1 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Data", "Riddell","Krista","Project","AnalysisData","Group","SampleNo","StatesFolder","State","Filename"), "/") %>%
+  separate("State", c("US", "StateAbbr"),"-") %>%
+  mutate(year = format(timestamp, "%Y"))
+
+#Additional Samples for Select States IA, KS, AR, ME, CT
+Queries.2 <- filenames.2 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Data", "Riddell","Krista","Project","AnalysisData","Group","SampleNo","StatesFolder","State","Filename"), "/") %>%
+  separate("State", c("US", "StateAbbr"),"-") %>%
+  mutate(year = format(timestamp, "%Y"))
+
+#Normalizing Terms
+Queries.3 <- filenames.3 %>%
+  setNames(nm = .) %>%
+  map_df(~read_csv(.x, col_types = cols(), col_names = TRUE), .id = "file_name") %>%
+  separate("file_name", c("Blank","Data", "Riddell","Krista","Project","AnalysisData","Group","NormalizingTerm","StatesFolder","State","Filename"), "/") %>%
+  separate("State", c("US", "StateAbbr"),"-") %>%
+  mutate(year = format(timestamp, "%Y"))
+
+#Queries.1
+#Queries.2
+#Queries.3
+```
+
+
+```{r Data cleaning and Manipulation, echo=FALSE, message=FALSE, warning=FALSE}
+
+#Add "US" as a state for the national level queries
+Queries.1$StateAbbr[is.na(Queries.1$StateAbbr)]<-"US"
+Queries.2$StateAbbr[is.na(Queries.2$StateAbbr)]<-"US"
+Queries.3$StateAbbr[is.na(Queries.3$StateAbbr)]<-"US"
+
+#Select only the columns we want and add week
+Data.1 <- Queries.1 %>% 
+  select ("SampleNo","StateAbbr","timestamp", "value", "year") %>% 
+  mutate(week_of_year = epiweek(timestamp)) %>% 
+  group_by(StateAbbr) %>% 
+  filter(StateAbbr %in% c("IA", "KS", "AR", "ME", "CT"))
+
+Data.2 <- Queries.2 %>% 
+  select ("SampleNo","StateAbbr","timestamp", "value", "year") %>% 
+  mutate(week_of_year = epiweek(timestamp)) %>% 
+  group_by(StateAbbr)  
+
+Normalizing.Terms <- Queries.3 %>% 
+  select ("NormalizingTerm","StateAbbr","timestamp", "value", "year") %>% 
+  mutate(week_of_year = epiweek(timestamp)) %>% 
+  group_by(StateAbbr) 
+
+#Combine Additional Samples with first 10 samples
+SampleData <- rbind(Data.1, Data.2)
+
+#Replace zero values with NA
+SampleData$value[SampleData$value == 0] <- NA
+
+#SampleData
+#Normalizing.Terms
+
+```
+
+```{r add averages across samples for each week/state, echo=FALSE, message=FALSE, warning=FALSE}
+
+#Create subsets for increasing number of samples
+Sample_5 <- SampleData %>% filter(SampleNo %in% c("Sample-1", "Sample-2", "Sample-3", "Sample-4", "Sample-5"))
+Sample_10 <- SampleData %>% filter(SampleNo %in% c("Sample-1", "Sample-2", "Sample-3", "Sample-4", "Sample-5","Sample-6", "Sample-7", "Sample-8", "Sample-9", "Sample-10"))
+Sample_15 <- SampleData 
+
+#Calculate Averages over 5 samples
+    # States included in Sample test: IA, KS, AR, ME, CT
+state_list <- c("AR","CT","IA","KS","ME")
+State.Avgs.5 <- setNames(data.frame(matrix(ncol = 4, nrow = 0)), c("timestamp", "mean_value", "StateAbbr", "Num_of_Samples"))
+
+for(i in seq(1:length(state_list))){
+  
+  #For each state, create average over all samples for each timeframe
+  Avg.i <- filter(Sample_5, StateAbbr == state_list[i]) %>%
+    group_by(timestamp) %>%
+    summarise(mean_value = mean(value, na.rm=TRUE))
+  
+  #Then add the state to the mean values, and bind the results to data from the previous states State.Avgs dataframe
+    StateAbbr.i <- rep(state_list[i], nrow(Avg.i))
+    Num_of_Samples.i <- rep("5 Samples", nrow(Avg.i))
+    Avg.i <- cbind(Avg.i, StateAbbr=StateAbbr.i, Num_of_Samples=Num_of_Samples.i)
+    State.Avgs.5 <- rbind(State.Avgs.5, Avg.i)
+}
+
+#Calculate Averages over 10 samples
+    # States included in Sample test: IA, KS, AR, ME, CT
+state_list <- c("AR","CT","IA","KS","ME")
+State.Avgs.10 <- setNames(data.frame(matrix(ncol = 4, nrow = 0)), c("timestamp", "mean_value", "StateAbbr", "Num_of_Samples"))
+
+for(i in seq(1:length(state_list))){
+  
+  #For each state, create average over all samples for each timeframe
+  Avg.i <- filter(Sample_10, StateAbbr == state_list[i]) %>%
+    group_by(timestamp) %>%
+    summarise(mean_value = mean(value, na.rm=TRUE))
+  
+  #Then add the state to the mean values, and bind the results to data from the previous states State.Avgs dataframe
+    StateAbbr.i <- rep(state_list[i], nrow(Avg.i))
+    Num_of_Samples.i <- rep("10 Samples", nrow(Avg.i))
+    Avg.i <- cbind(Avg.i, StateAbbr=StateAbbr.i, Num_of_Samples=Num_of_Samples.i)
+    State.Avgs.10 <- rbind(State.Avgs.10, Avg.i)
+}
+
+#Calculate Averages over all 15 samples
+    # States included in Sample test: IA, KS, AR, ME, CT
+state_list <- c("AR","CT","IA","KS","ME")
+State.Avgs.15 <- setNames(data.frame(matrix(ncol = 4, nrow = 0)), c("timestamp", "mean_value", "StateAbbr", "Num_of_Samples"))
+
+for(i in seq(1:length(state_list))){
+  
+  #For each state, create average over all samples for each timeframe
+  Avg.i <- filter(Sample_15, StateAbbr == state_list[i]) %>%
+    group_by(timestamp) %>%
+    summarise(mean_value = mean(value, na.rm=TRUE))
+  
+  #Then add the state to the mean values, and bind the results to data from the previous states State.Avgs dataframe
+    StateAbbr.i <- rep(state_list[i], nrow(Avg.i))
+    Num_of_Samples.i <- rep("15 Samples", nrow(Avg.i))
+    Avg.i <- cbind(Avg.i, StateAbbr=StateAbbr.i, Num_of_Samples=Num_of_Samples.i)
+    State.Avgs.15 <- rbind(State.Avgs.15, Avg.i)
+}
+
+
+#Calculate week-to-week magnitude differences in each sample
+State.Avgs.5   %<>% mutate(diff_row = abs(mean_value - lag(mean_value)))
+State.Avgs.10  %<>% mutate(diff_row = abs(mean_value - lag(mean_value)))
+State.Avgs.15  %<>% mutate(diff_row = abs(mean_value - lag(mean_value)))
+
+
+#Just to make things easier, lets combine all into one df and also add year and week to the data with the state averages. Teh set week 1 difference to 0 for each year (this will also help prevent us from accidentally comparing the end of one state and beginning of another)
+
+State.Avgs.all <- rbind(State.Avgs.5, State.Avgs.10, State.Avgs.15) %>% 
+  mutate(year = format(timestamp, "%Y"), week_of_year = epiweek(timestamp))
+
+State.Avgs.all$diff_row[State.Avgs.all$week_of_year == 1]<- NA
+
+
+```
+
+```{r Compare week to week variation for each sample, echo=FALSE, message=FALSE, warning=FALSE}
+
+Compare.5.Samples <- State.Avgs.all %>% filter(Num_of_Samples == "5 Samples")
+Compare.10.Samples <- State.Avgs.all %>% filter(Num_of_Samples == "10 Samples")
+Compare.15.Samples <- State.Avgs.all %>% filter(Num_of_Samples == "15 Samples")
+
+Compare.Weekly <- setNames(data.frame(matrix(ncol = 5, nrow = 0)), c("Year", "StateAbbr", "week_of_year", "fifteen_vs_five", "fifteen_vs_ten"))
+
+#AllTimestamps <- unique(State.Avgs.all$timestamp)
+
+#for(i in seq(1:length(AllTimestamps))){
+
+Years = c("2017","2018","2019")
+Weeks = c(1:52)
+
+#Loop over
+for(i in seq(1:3)){
+  
+  compare.5.i <- Compare.5.Samples %>% filter(year == Years[i])
+  compare.10.i <- Compare.10.Samples %>% filter(year == Years[i])
+  compare.base.i <- Compare.15.Samples %>% filter(year == Years[i])
+  
+   
+  #Loop over all States individually
+  for (j in seq(1:length(state_list))){
+    
+    compare.5.ij <- compare.5.i %>% filter(StateAbbr == state_list[j])
+    compare.10.ij <- compare.10.i %>% filter(StateAbbr == state_list[j])
+    compare.base.ij <- compare.base.i %>% filter(StateAbbr == state_list[j])
+    
+    
+    #Loop over all weeks in year
+     for (k in seq(1:52)){
+       
+       compare.5.ijk <- compare.5.ij %>% filter(week_of_year == Weeks[k])
+       compare.10.ijk <- compare.10.ij %>% filter(week_of_year == Weeks[k])
+       compare.base.ijk <- compare.base.ij %>% filter(week_of_year == Weeks[k])
+       
+       #Comparison Calculation
+       ratio.5.ijk <- compare.5.ijk$diff_row / compare.base.ijk$diff_row - 1
+       ratio.10.ijk <- compare.10.ijk$diff_row / compare.base.ijk$diff_row - 1
+       
+       NewRow.ijk <- cbind(Year = Years[i], StateAbbr = state_list[j], week_of_year = Weeks[k], fifteen_vs_five = ratio.5.ijk, fifteen_vs_ten = ratio.10.ijk)
+       Compare.Weekly <- rbind(Compare.Weekly, NewRow.ijk)
+     }
+  }
+}
+
+Compare.Weekly$fifteen_vs_five[is.nan(Compare.Weekly$fifteen_vs_five)] <- NA
+Compare.Weekly$fifteen_vs_ten[is.nan(Compare.Weekly$fiftee_vs_ten)] <- NA
+
+
+Compare.Weekly$fifteen_vs_five <- as.numeric(Compare.Weekly$fifteen_vs_five)
+Compare.Weekly$fifteen_vs_ten <- as.numeric(Compare.Weekly$fifteen_vs_ten)
+Compare.Weekly$week_of_year <- as.numeric(Compare.Weekly$week_of_year)
+
+```
+
+
+
+```{r State Level Plots, echo = F,  fig.height = 18, fig.width = 25, message=F, warning=F }
+
+#Plot Data for Each of the 5 states
+
+p1.AR <- ggplot(data = State.Avgs.all %>% filter(StateAbbr == "AR" & year != "2020"), aes(x = timestamp, y = mean_value)) +
+  geom_line(data = State.Avgs.all %>% filter(StateAbbr == "AR" & year != "2020"), aes(col = Num_of_Samples)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "AR - Comparison of number of samples",
+       subtitle = "For 2017-2019") +
+  theme_minimal(base_size = 15) +
+  scale_colour_manual(values = c("black", "red", "gray")) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+p2.AR <- ggplot(data = State.Avgs.all %>% filter(StateAbbr == "AR" & year != "2020"), aes(x = timestamp, y = diff_row)) +
+  geom_line(data = State.Avgs.all %>% filter(StateAbbr == "AR" & year != "2020"), aes(col = Num_of_Samples)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "AR - Comparison of week to week differences",
+       subtitle = "For 2017-2019") +
+  theme_minimal(base_size = 15) +
+  scale_colour_manual(values = c("black", "red", "gray")) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+
+
+p1.CT <- ggplot(data = State.Avgs.all %>% filter(StateAbbr == "CT" & year != "2020"), aes(x = timestamp, y = mean_value)) +
+  geom_line(data = State.Avgs.all %>% filter(StateAbbr == "CT" & year != "2020"), aes(col = Num_of_Samples)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "CT - Comparison of number of samples",
+       subtitle = "For 2017-2019") +
+  theme_minimal(base_size = 15) +
+  scale_colour_manual(values = c("black", "red", "gray")) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+p2.CT <- ggplot(data = State.Avgs.all %>% filter(StateAbbr == "CT" & year != "2020"), aes(x = timestamp, y = diff_row)) +
+  geom_line(data = State.Avgs.all %>% filter(StateAbbr == "CT" & year != "2020"), aes(col = Num_of_Samples)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "CT - Comparison of week to week differences",
+       subtitle = "For 2017-2019") +
+  theme_minimal(base_size = 15) +
+  scale_colour_manual(values = c("black", "red", "gray")) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+
+
+p1.IA <- ggplot(data = State.Avgs.all %>% filter(StateAbbr == "IA" & year != "2020"), aes(x = timestamp, y = mean_value)) +
+  geom_line(data = State.Avgs.all %>% filter(StateAbbr == "IA" & year != "2020"), aes(col = Num_of_Samples)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "IA - Comparison of number of samples",
+       subtitle = "For 2017-2019") +
+  theme_minimal(base_size = 15) +
+  scale_colour_manual(values = c("black", "red", "gray")) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+p2.IA <- ggplot(data = State.Avgs.all %>% filter(StateAbbr == "IA" & year != "2020"), aes(x = timestamp, y = diff_row)) +
+  geom_line(data = State.Avgs.all %>% filter(StateAbbr == "IA" & year != "2020"), aes(col = Num_of_Samples)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "IA - Comparison of week to week differences",
+       subtitle = "For 2017-2019") +
+  theme_minimal(base_size = 15) +
+  scale_colour_manual(values = c("black", "red", "gray")) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+
+
+p1.KS <- ggplot(data = State.Avgs.all %>% filter(StateAbbr == "KS" & year != "2020"), aes(x = timestamp, y = mean_value)) +
+  geom_line(data = State.Avgs.all %>% filter(StateAbbr == "KS" & year != "2020"), aes(col = Num_of_Samples)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "KS - Comparison of number of samples",
+       subtitle = "For 2017-2019") +
+  theme_minimal(base_size = 15) +
+  scale_colour_manual(values = c("black", "red", "gray")) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+p2.KS <- ggplot(data = State.Avgs.all %>% filter(StateAbbr == "KS" & year != "2020"), aes(x = timestamp, y = diff_row)) +
+  geom_line(data = State.Avgs.all %>% filter(StateAbbr == "KS" & year != "2020"), aes(col = Num_of_Samples)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "KS - Comparison of week to week differences",
+       subtitle = "For 2017-2019") +
+  theme_minimal(base_size = 15) +
+  scale_colour_manual(values = c("black", "red", "gray")) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+
+
+p1.ME <- ggplot(data = State.Avgs.all %>% filter(StateAbbr == "ME" & year != "2020"), aes(x = timestamp, y = mean_value)) +
+  geom_line(data = State.Avgs.all %>% filter(StateAbbr == "ME" & year != "2020"), aes(col = Num_of_Samples)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "ME - Comparison of number of samples",
+       subtitle = "For 2017-2019") +
+  theme_minimal(base_size = 15) +
+  scale_colour_manual(values = c("black", "red", "gray")) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+p2.ME <- ggplot(data = State.Avgs.all %>% filter(StateAbbr == "ME" & year != "2020"), aes(x = timestamp, y = diff_row)) +
+  geom_line(data = State.Avgs.all %>% filter(StateAbbr == "ME" & year != "2020"), aes(col = Num_of_Samples)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "ME - Comparison of week to week differences",
+       subtitle = "For 2017-2019") +
+  theme_minimal(base_size = 15) +
+  scale_colour_manual(values = c("black", "red", "gray")) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+grid.arrange(p1.AR, p2.AR, nrow=2)
+grid.arrange(p1.CT, p2.CT, nrow=2)
+grid.arrange(p1.IA, p2.IA, nrow=2)
+grid.arrange(p1.KS, p2.KS, nrow=2)
+grid.arrange(p1.ME, p2.ME, nrow=2)
+
+```
+
+```{r Plot Ratio of week-to-week differences - Sample No comparison, echo = F,  fig.height = 20, fig.width = 25, message=F, warning=F}
+
+
+Noisiness_of_5 <- mean(Compare.Weekly$fifteen_vs_five, na.rm = TRUE)
+Noisiness_of_10 <- mean(Compare.Weekly$fifteen_vs_ten, na.rm = TRUE)
+
+Noisiness_of_5_med <- median(Compare.Weekly$fifteen_vs_five, na.rm = TRUE)
+Noisiness_of_10_med <- median(Compare.Weekly$fifteen_vs_ten, na.rm = TRUE)
+
+print(paste0("Average of 5 samples / 15 samples: ", Noisiness_of_5))
+print(paste0("Average of 10 samples / 15 samples: ", Noisiness_of_10))
+
+print(paste0("Median of 5 samples / 15 samples: ", Noisiness_of_5_med))
+print(paste0("Median of 10 samples / 15 samples: ", Noisiness_of_10_med))
+
+
+Compare.Weekly.Ratios <- Compare.Weekly %>%
+  filter(week_of_year != 1) %>%
+  tidyr::gather("Ratio", "value", fifteen_vs_five:fifteen_vs_ten)
+
+ggplot(data = Compare.Weekly.Ratios %>% filter(StateAbbr == 'AR' & Year == "2019"), aes(x = week_of_year, y = value)) +
+  geom_line(data = Compare.Weekly.Ratios %>% filter(StateAbbr == 'AR' & Year == "2019"), aes(col = Ratio)) +
+  labs(x = "Week of Year",
+       y = "Search outcome",
+       title = "Ratio of week-to-week differences compared to 15 samples",
+       subtitle = "AR only and 2019 only") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18))
+
+```
+
+
+```{r Plots for Normalizing terms, echo = F,  fig.height = 20, fig.width = 25, message=F, warning=F }
+
+ggplot(data = Normalizing.Terms, aes(x = timestamp, y = value)) +
+  geom_line(data = Normalizing.Terms, aes(col = NormalizingTerm)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Normalizing Terms - all states, all years",
+       subtitle = "the vs gmail vs weather") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+
+ggplot(data = Normalizing.Terms, aes(x = timestamp, y = value)) +
+  geom_line(data = Normalizing.Terms, aes(col = NormalizingTerm)) +
+  labs(x = "Date", 
+       y = "Search outcome",
+       title = "Normalizing Terms",
+       subtitle = "By State, all years") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) +
+  facet_geo(~ StateAbbr) 
+
+
+
+ggplot(data = Normalizing.Terms %>% filter(NormalizingTerm == "the"), aes(x = week_of_year, y = value)) +
+  geom_line(data = Normalizing.Terms %>% filter(NormalizingTerm == "the"), aes(col = year)) +
+  labs(x = "Week of the year", 
+       y = "Search outcome",
+       title = "Normalizing Terms: 'the'",
+       subtitle = "Comparison across states, over all years") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) +
+  facet_geo(~ StateAbbr) 
+
+ggplot(data = Normalizing.Terms %>% filter(NormalizingTerm == "the" & StateAbbr == "CA"), aes(x = week_of_year, y = value)) +
+  geom_line(data = Normalizing.Terms %>% filter(NormalizingTerm == "the" & StateAbbr == "CA"), aes(col = year)) +
+  labs(x = "Week of the year", 
+       y = "Search outcome",
+       title = "Normalizing Terms: 'the'",
+       subtitle = "Comparison over the years, CA only data") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+
+ggplot(data = Normalizing.Terms %>% filter(NormalizingTerm == "gmail"), aes(x = week_of_year, y = value)) +
+  geom_line(data = Normalizing.Terms %>% filter(NormalizingTerm == "gmail"), aes(col = year)) +
+  labs(x = "Week of the year", 
+       y = "Search outcome",
+       title = "Normalizing Terms: 'gmail'",
+       subtitle = "Comparison across states, over all years") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) +
+  facet_geo(~ StateAbbr) 
+ggplot(data = Normalizing.Terms %>% filter(NormalizingTerm == "gmail" & StateAbbr == "CA"), aes(x = week_of_year, y = value)) +
+  geom_line(data = Normalizing.Terms %>% filter(NormalizingTerm == "gmail" & StateAbbr == "CA"), aes(col = year)) +
+  labs(x = "Week of the year", 
+       y = "Search outcome",
+       title = "Normalizing Terms: 'gmail and g-mail'",
+       subtitle = "Comparison over the years, CA only data") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+
+
+ggplot(data = Normalizing.Terms %>% filter(NormalizingTerm == "weather"), aes(x = week_of_year, y = value)) +
+  geom_line(data = Normalizing.Terms %>% filter(NormalizingTerm == "weather"), aes(col = year)) +
+  labs(x = "Week of the year", 
+       y = "Search outcome",
+       title = "Normalizing Terms: 'weather'",
+       subtitle = "Comparison across states, over all years") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) +
+  facet_geo(~ StateAbbr) 
+
+ggplot(data = Normalizing.Terms %>% filter(NormalizingTerm == "weather" & StateAbbr == "CA"), aes(x = week_of_year, y = value)) +
+  geom_line(data = Normalizing.Terms %>% filter(NormalizingTerm == "weather" & StateAbbr == "CA"), aes(col = year)) +
+  labs(x = "Week of the year", 
+       y = "Search outcome",
+       title = "Normalizing Terms: 'weather'",
+       subtitle = "Comparison over the years, CA only data") +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(size=24), plot.subtitle = element_text(size=18)) 
+
+
+```
+
